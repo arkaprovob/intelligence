@@ -2,10 +2,9 @@ from transformers import AutoTokenizer
 
 
 class PromptProvider:
-    def __init__(self, model_name, cache_dir):
+    def __init__(self, model_name):
         self.model_name = model_name
-        self.cache_dir = cache_dir
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.system_prompt = ("You are a Q&A assistant. Your goal is to answer questions as "
                               "accurately as"
                               "possible based on the instructions and context provided."

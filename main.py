@@ -20,15 +20,15 @@ class Query(BaseModel):
 
 documents = SimpleDirectoryReader(
     "/home/arko/PycharmProjects/intelligence/test_resources").load_data()
-cache_dir = "/media/arko/work/.hfcache"
-embed_model = FastEmbedEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir=cache_dir)
+
+embed_model = FastEmbedEmbedding(model_name="BAAI/bge-small-en-v1.5")
 Settings.embed_model = embed_model
 model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
 notebook_login()
 model_url = "https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q5_K_S.gguf?download=true"
 client = QdrantClient(host="localhost", port=6333)
 
-prompt_provider = PromptProvider(model_name, cache_dir)
+prompt_provider = PromptProvider(model_name)
 index_provider = IndexProvider(documents, client, "spaship_docs", embed_model)
 query_engine_provider = QueryEngineProvider(model_url, prompt_provider.get_system_prompt(),
                                             prompt_provider.completion_to_prompt,
