@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text Stream Display</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: start;
+        }
+        .text-output {
+            width: 90%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            height: 300px;
+            overflow-y: auto;
+        }
+        #questionForm {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <form id="questionForm">
+        <input type="text" id="questionInput" placeholder="Enter your question here">
+        <button type="submit">Submit</button>
+    </form>
+    <div id="output1" class="text-output"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    document.getElementById('questionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        document.getElementById("output1").innerHTML = '';
+        const question = document.getElementById('questionInput').value;
+        const response = await fetch('http://127.0.0.1:8000/query-stream/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: question
+            })
+        });
+        const data = await response.json();
+        const streamUrl = data.streamUrl;
+        const eventSource = new EventSource(streamUrl);
+        eventSource.onmessage = (event) => {
+            const eventDataString = event.data.replace("data: ", "");
+            const eventData = JSON.parse(eventDataString);
+            const outputDiv = document.getElementById("output1");
+            const p = document.createElement('p');
+            p.textContent = eventData.text;
+            outputDiv.appendChild(p);
+        };
+        eventSource.onerror = (error) => {
+            document.getElementById("output1").innerHTML = '<p class="error">Error receiving stream.</p>';
+            console.error('SSE Error:', error);
+        };
+    });
+});
+</script>
+
+</body>
+</html>
