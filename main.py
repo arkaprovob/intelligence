@@ -81,6 +81,11 @@ else:
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "UP", "message": "Service is running"}
+
+
 @app.post('/query-stream/')
 async def stream(query: Query = Body(...)):
     return StreamingResponse(query_engine_provider.generate_answer(query.query),
