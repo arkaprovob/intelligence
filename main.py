@@ -1,39 +1,67 @@
+import os
+
 from llama_index.core import SimpleDirectoryReader
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.core import Settings
 from huggingface_hub import notebook_login
 from pydantic import BaseModel
 from qdrant_client import QdrantClient
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, HTTPException
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from prompt import PromptProvider
+from prompt import PromptProvider, completion_to_prompt
 from llama_index_query_engine import QueryEngineProvider
 from store import IndexProvider
 from fastapi.staticfiles import StaticFiles
+
+from tinydb import TinyDB
+import ssl
+
+from utility import get_config_value
+import logging
+
+logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s '
+                           '[%(filename)s:%(lineno)d] %(message)s',
+                    datefmt='%Y-%m-%d:%H:%M:%S',
+                    level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class Query(BaseModel):
     query: str
 
 
-documents = SimpleDirectoryReader(
-    "/home/arko/PycharmProjects/intelligence/test_resources").load_data()
+class FeedbackRequest(BaseModel):
+    message: str
+    feedback: int
+    UserQuestion: str
 
-embed_model = FastEmbedEmbedding(model_name="BAAI/bge-small-en-v1.5")
+
+cert_file = get_config_value("SSL_CERT_PATH")
+key_file = get_config_value("SSL_KEY_PATH")
+
+db = get_config_value("TINY_DB_PATH")
+
+documents = SimpleDirectoryReader(get_config_value("SDR_DIR")).load_data()
+
+cache_dir = get_config_value("CACHE_DIR")
+
+embed_model = FastEmbedEmbedding(model_name=get_config_value("EMBEDDING_MODEL"),
+                                 cache_dir=cache_dir)
 Settings.embed_model = embed_model
-model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
+model_name = get_config_value("INFERENCING_MODEL")
 notebook_login()
-model_url = "https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q5_K_S.gguf?download=true"
-client = QdrantClient(host="localhost", port=6333)
+model_url = get_config_value("MODEL_URL")
+client = QdrantClient(host=get_config_value("QDRANT_HOST"), port=get_config_value("QDRANT_PORT"))
 
-prompt_provider = PromptProvider(model_name)
-index_provider = IndexProvider(documents, client, "spaship_docs", embed_model)
+prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
+index_provider = IndexProvider(documents, client, get_config_value("COLLECTION_NAME"), embed_model)
 query_engine_provider = QueryEngineProvider(model_url, prompt_provider.get_system_prompt(),
-                                            prompt_provider.completion_to_prompt,
+                                            completion_to_prompt,
                                             prompt_provider.get_stopping_ids(),
-                                            index_provider.get_index(), embed_model)
+                                            index_provider.get_index(),
+                                            model_path=get_config_value("MODEL_PATH"))
 
 app = FastAPI()
 app.add_middleware(
@@ -43,6 +71,13 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+if cert_file is not None or key_file is not None:
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain('cert.pem', keyfile='key.pem')
+else:
+    logger.warning("SSL files not found, proceeding without SSL configuration.")
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
@@ -50,3 +85,21 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def stream(query: Query = Body(...)):
     return StreamingResponse(query_engine_provider.generate_answer(query.query),
                              media_type='text/event-stream')
+
+
+@app.get('/query-stream/')
+async def stream(query: str = None):
+    if not query:
+        return {"error": "Query parameter is required."}
+    return StreamingResponse(query_engine_provider.generate_answer(query),
+                             media_type='text/event-stream')
+
+
+@app.post("/docsbot-feedback")
+async def save_feedback(feedback_request: FeedbackRequest):
+    try:
+        # Insert the feedback data into the TinyDB database
+        db.insert(feedback_request.dict())
+        return {"status": "success", "data": feedback_request}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")

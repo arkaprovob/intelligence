@@ -1,10 +1,14 @@
 from transformers import AutoTokenizer
 
 
+def completion_to_prompt(completion):
+    return f"<|USER|>{completion}<|ASSISTANT|>"
+
+
 class PromptProvider:
-    def __init__(self, model_name):
+    def __init__(self, model_name, cache_dir=None):
         self.model_name = model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, cachedir=cache_dir)
         self.system_prompt = ("You are a Q&A assistant. Your goal is to answer questions as "
                               "accurately as"
                               "possible based on the instructions and context provided."
@@ -23,6 +27,3 @@ class PromptProvider:
 
     def get_system_prompt(self):
         return self.system_prompt
-
-    def completion_to_prompt(self, completion):
-        return f"<|USER|>{completion}<|ASSISTANT|>"

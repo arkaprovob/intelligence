@@ -17,3 +17,8 @@ bitsandbytes
 llama-cpp-python
 llama-index-llms-llama-cpp
 fastapi
+tinydb
+uvicorn[standard]
+cryptography
+requests
+numpy<2.0.0
