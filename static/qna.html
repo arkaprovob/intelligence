@@ -31,9 +31,8 @@
         <input type="text" id="questionInput" placeholder="Enter your question here">
         <button type="submit">Submit</button>
     </form>
-    <div id="output1" class="text-output"></div>
+    <github-md id="output1" class="text-output"></github-md>
 </div>
-
 <script>
     document.getElementById('questionForm').addEventListener('submit', function(e) {
         e.preventDefault(); // Prevent the default form submission
@@ -57,7 +56,7 @@
             // else if (data.tokens_per_second) {console.log(`Tokens per second: ${data.tokens_per_second}`);}
             if (data.text) {
                 fullText += data.text; // Append the new text to the full text
-                document.getElementById("output1").innerText = fullText;
+                document.getElementById("output1").innerHTML = fullText;
             }
             else if (data.done) {
                 console.log("Stream ended");
@@ -68,4 +67,5 @@
     });
 </script>
 </body>
+<script src="https://cdn.jsdelivr.net/gh/MarketingPipeline/Markdown-Tag/markdown-tag-GitHub.js"></script>
 </html>
