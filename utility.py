@@ -29,6 +29,10 @@ def get_config_value(key):
                 try:
                     value = float(value)
                 except ValueError:
-                    pass  # value is not a number, leave it as a string
+                    try:
+                        if value.lower() in ['true', 'false']:  # check if value is a boolean
+                            value = value.lower() == 'true'
+                    except ValueError:
+                        pass
 
     return value
