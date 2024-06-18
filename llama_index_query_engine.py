@@ -22,10 +22,13 @@ class QueryEngineProvider:
         else:
             node_postprocessors = [rerank]
         print(f"the length of the node_postprocessors is {len(node_postprocessors)}")
+        # todo handle async indexing
+        async_indexing = get_config_value("ASYNC_INDEXING")
         self.query_engine = index.as_query_engine(similarity_top_k=10, streaming=True,
                                                   node_postprocessors=node_postprocessors,
-                                                  llm=llm)
+                                                  llm=llm, use_async=async_indexing)
 
+    # todo handle async indexing
     def generate_answer(self, query):
         try:
             now = time.time()

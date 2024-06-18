@@ -5,7 +5,6 @@ from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.core import Settings
 from huggingface_hub import notebook_login
 from pydantic import BaseModel
-from qdrant_client import QdrantClient
 from fastapi import FastAPI, Body, HTTPException
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
@@ -13,7 +12,7 @@ from starlette.middleware.cors import CORSMiddleware
 from llmacpp import LlamaProvider
 from prompt import PromptProvider, completion_to_prompt
 from llama_index_query_engine import QueryEngineProvider
-from store import IndexProvider
+from store import Ingestion
 from fastapi.staticfiles import StaticFiles
 
 from tinydb import TinyDB
@@ -54,17 +53,16 @@ Settings.embed_model = embed_model
 model_name = get_config_value("INFERENCING_MODEL")
 notebook_login()
 model_url = get_config_value("MODEL_URL")
-client = QdrantClient(host=get_config_value("QDRANT_HOST"), port=get_config_value("QDRANT_PORT"))
 
 prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
-llm = LlamaProvider(model_url,prompt_provider.get_system_prompt(),completion_to_prompt,
-                    prompt_provider.get_stopping_ids(),model_path=get_config_value("MODEL_PATH"))
+llm = LlamaProvider(model_url, prompt_provider.get_system_prompt(), completion_to_prompt,
+                    prompt_provider.get_stopping_ids(), model_path=get_config_value("MODEL_PATH"))
 
-index_provider = IndexProvider(documents, client, get_config_value("COLLECTION_NAME"),
-                               embed_model, llm.get_llm(), transform=get_config_value(
+ingestion = Ingestion(documents, get_config_value("COLLECTION_NAME"),
+                      embed_model, llm.get_llm(), transform=get_config_value(
         "TRANSFORM"), use_node_parser=get_config_value("USE_NODE_PARSER"))
 query_engine_provider = QueryEngineProvider(llm.get_llm(),
-                                            index_provider.get_index())
+                                            ingestion.get_index())
 
 app = FastAPI()
 app.add_middleware(
