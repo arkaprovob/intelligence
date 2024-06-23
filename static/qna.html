@@ -20,16 +20,38 @@
             height: 300px; /* Fixed height with overflow */
             overflow-y: auto; /* Enable vertical scrolling */
         }
+        .questionInput{
+            width: 90%;
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .sbmt{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
         #questionForm {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 <div class="container">
+    <h2>DOCS-BOT Lite 😁</h2>
+
+    <br/><br/><br/>
     <form id="questionForm">
-        <input type="text" id="questionInput" placeholder="Enter your question here">
-        <button type="submit">Submit</button>
+        <input type="text" id="questionInput" class="questionInput" placeholder="Enter your question here">
+        <button class="sbmt" type="submit">Docs-Bot, reveal!</button>
     </form>
     <github-md id="output1" class="text-output"></github-md>
 </div>

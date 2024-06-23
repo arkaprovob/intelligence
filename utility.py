@@ -8,6 +8,8 @@ profile = os.getenv('PROFILE', 'local')
 
 
 def get_config_value(key):
+    print(f"#### selected profile: {profile} ####")
+
     # read value from environment variable
     value = os.getenv(key)
 
