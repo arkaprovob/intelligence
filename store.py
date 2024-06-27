@@ -55,8 +55,10 @@ class Ingestion:
                 original_text_metadata_key="original_text"
             )
 
-            text_splitter = SentenceSplitter(chunk_size=get_config_value("CHUNK_SIZE"),
-                                             chunk_overlap=get_config_value("CHUNK_OVERLAP"))
+            text_splitter = SentenceSplitter(
+                chunk_size=get_config_value("CHUNK_SIZE"),
+                chunk_overlap=get_config_value("CHUNK_OVERLAP")
+            )
 
             # plays an important role in the extraction of the metadata from the nodes
             # todo use a separate llm for these extractors with proper context
@@ -80,13 +82,17 @@ class Ingestion:
                 Settings.text_splitter = text_splitter
                 nodes = text_splitter.get_nodes_from_documents(documents)
 
-            self.index = VectorStoreIndex(
-                nodes,
-                storage_context=self.storage_context,
-                embed_model=embed_model,
-                transformations=extractors,
-                use_async=self.use_async,
-                show_progress=True)
+            # todo Trigger this when there is a new data and trigger the next when the index already exists and
+            #  searchable; make it a part of pipeline
+            # self.index = VectorStoreIndex(
+            #     nodes=nodes,
+            #     storage_context=self.storage_context,
+            #     embed_model=embed_model,
+            #     transformations=extractors,
+            #     use_async=self.use_async,
+            #     show_progress=True)
+
+            self.index = VectorStoreIndex.from_vector_store(vector_store=self.vector_store)
 
         except Exception as e:
             logger.error(f"Error initializing database: {e}", exc_info=True)
