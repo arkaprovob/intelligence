@@ -16,7 +16,8 @@ logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s '
 class QueryEngineProvider:
     def __init__(self, llm, index):
         postproc = MetadataReplacementPostProcessor(target_metadata_key="window")
-        rerank = SentenceTransformerRerank(model=get_config_value("RERANKING_MODEL"), top_n=3)
+        rerank = SentenceTransformerRerank(model=get_config_value("RERANKING_MODEL"),
+                                           top_n=get_config_value("RERANKING_TOP_N"))
 
         if get_config_value("USE_NODE_PARSER"):
             node_postprocessors = [postproc, rerank]
@@ -25,9 +26,13 @@ class QueryEngineProvider:
         print(f"the length of the node_postprocessors is {len(node_postprocessors)}")
         # todo handle async indexing
         async_indexing = get_config_value("ASYNC_INDEXING")
-        self.query_engine: BaseQueryEngine = index.as_query_engine(similarity_top_k=10, streaming=True,
-                                                                   node_postprocessors=node_postprocessors,
-                                                                   llm=llm, use_async=async_indexing)
+        self.query_engine: BaseQueryEngine = index.as_query_engine(
+            get_config_value("SIMILARITY_TOP_K"),
+            streaming=True,
+            node_postprocessors=node_postprocessors,
+            llm=llm,
+            use_async=async_indexing
+        )
 
     # todo handle async indexing
     def generate_answer(self, query):
