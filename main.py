@@ -9,6 +9,7 @@ from fastapi import FastAPI, Body, HTTPException
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
+from llm_impl import OurLLM
 from llmacpp import LlamaProvider
 from prompt import PromptProvider, completion_to_prompt
 from llama_index_query_engine import QueryEngineProvider
@@ -55,13 +56,12 @@ notebook_login()
 model_url = get_config_value("MODEL_URL")
 
 prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
-llm = LlamaProvider(model_url, prompt_provider.get_system_prompt(), completion_to_prompt,
-                    prompt_provider.get_stopping_ids(), model_path=get_config_value("MODEL_PATH"))
+llm = OurLLM()
 
 ingestion = Ingestion(documents, get_config_value("COLLECTION_NAME"),
-                      embed_model, llm.get_llm(), transform=get_config_value(
+                      embed_model, llm, transform=get_config_value(
         "TRANSFORM"), use_node_parser=get_config_value("USE_NODE_PARSER"))
-query_engine_provider = QueryEngineProvider(llm.get_llm(),
+query_engine_provider = QueryEngineProvider(llm,
                                             ingestion.get_index())
 
 app = FastAPI()

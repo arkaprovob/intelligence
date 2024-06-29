@@ -12,3 +12,7 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 CMAKE_ARGS="-DLLAMA_METAL=on" pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
 export PROFILE=m3
 python -m uvicorn main:app
+
+# Use google gemma 2
+install `pip install -U transformers` to use google gemma 2
+`pip install sentencepiece` to use google gemma 2
