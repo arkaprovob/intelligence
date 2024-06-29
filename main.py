@@ -62,7 +62,8 @@ ingestion = Ingestion(documents, get_config_value("COLLECTION_NAME"),
                       embed_model, llm.get_llm(), transform=get_config_value(
         "TRANSFORM"), use_node_parser=get_config_value("USE_NODE_PARSER"))
 query_engine_provider = QueryEngineProvider(llm.get_llm(),
-                                            ingestion.get_index())
+                                            ingestion.get_index(rebuild_index=get_config_value(
+                                                "REBUILD_INDEX")))
 
 app = FastAPI()
 app.add_middleware(

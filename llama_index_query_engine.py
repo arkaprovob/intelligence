@@ -27,7 +27,7 @@ class QueryEngineProvider:
         # todo handle async indexing
         async_indexing = get_config_value("ASYNC_INDEXING")
         self.query_engine: BaseQueryEngine = index.as_query_engine(
-            get_config_value("SIMILARITY_TOP_K"),
+            similarity_top_k=get_config_value("SIMILARITY_TOP_K"),
             streaming=True,
             node_postprocessors=node_postprocessors,
             llm=llm,
