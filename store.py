@@ -26,12 +26,15 @@ logger = logging.getLogger(__name__)
 class Ingestion:
     def __init__(self, documents, collection_name, embed_model, llm, transform=False,
                  use_node_parser=False):
-        Settings.llm = llm
+        # Settings.llm = llm
         Settings.chunk_size = get_config_value("CHUNK_SIZE")
         Settings.chunk_overlap = get_config_value("CHUNK_OVERLAP")
         async_indexing = get_config_value("ASYNC_INDEXING")
         try:
             self.use_async = False
+            self.embed_model = embed_model
+            self.use_node_parser = use_node_parser
+            self.documents = documents
 
             if async_indexing:
                 nest_asyncio.apply()
@@ -49,13 +52,13 @@ class Ingestion:
             self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
 
             # todo explore TokenTextSplitter
-            node_parser = SentenceWindowNodeParser(
+            self.node_parser = SentenceWindowNodeParser(
                 window_size=3,
                 window_metadata_key="window",
                 original_text_metadata_key="original_text"
             )
 
-            text_splitter = SentenceSplitter(
+            self.text_splitter = SentenceSplitter(
                 chunk_size=get_config_value("CHUNK_SIZE"),
                 chunk_overlap=get_config_value("CHUNK_OVERLAP")
             )
@@ -63,39 +66,38 @@ class Ingestion:
             # plays an important role in the extraction of the metadata from the nodes
             # todo use a separate llm for these extractors with proper context
             if transform:
-                extractors = [
+                self.extractors = [
                     TitleExtractor(nodes=5, llm=llm),
                     SummaryExtractor(summaries=["prev", "self", "next"], llm=llm),
                     QuestionsAnsweredExtractor(questions=3, llm=llm,
                                                metadata_mode=MetadataMode.EMBED),
                 ]
             else:
-                extractors = []
+                self.extractors = []
 
-            if use_node_parser:
-                logger.info("Using node parser")
-                print("Using node parser")
-                nodes = node_parser.get_nodes_from_documents(documents)
-            else:
-                logger.info("Using documents")
-                print("Using documents")
-                Settings.text_splitter = text_splitter
-                nodes = text_splitter.get_nodes_from_documents(documents)
-
-            # todo Trigger this when there is a new data and trigger the next when the index already exists and
-            #  searchable; make it a part of pipeline
-            # self.index = VectorStoreIndex(
-            #     nodes=nodes,
-            #     storage_context=self.storage_context,
-            #     embed_model=embed_model,
-            #     transformations=extractors,
-            #     use_async=self.use_async,
-            #     show_progress=True)
-
-            self.index = VectorStoreIndex.from_vector_store(vector_store=self.vector_store)
+            self.index = None
 
         except Exception as e:
             logger.error(f"Error initializing database: {e}", exc_info=True)
 
-    def get_index(self):
+    def get_index(self, rebuild_index=False):
+        if self.use_node_parser:
+            logger.info("Using node parser")
+            print("Using node parser")
+            nodes = self.node_parser.get_nodes_from_documents(self.documents)
+        else:
+            logger.info("Using documents")
+            print("Using documents")
+            Settings.text_splitter = self.text_splitter
+            nodes = self.text_splitter.get_nodes_from_documents(self.documents)
+
+        if rebuild_index:
+            self.index = VectorStoreIndex(
+                nodes=nodes,
+                storage_context=self.storage_context,
+                embed_model=self.embed_model,
+                transformations=self.extractors,
+                use_async=self.use_async,
+                show_progress=True)
+        self.index = VectorStoreIndex.from_vector_store(vector_store=self.vector_store)
         return self.index
