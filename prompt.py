@@ -30,7 +30,6 @@ class PromptProvider:
     # issues.redhat.com/SPASHIP and Provide a concise issue summary and description for them
     #         """
 
-
     def get_stopping_ids(self):
         return [
             self.tokenizer.eos_token,

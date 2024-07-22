@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocsBot Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Red Hat Text', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .menu-bar {
+            background-color: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .menu-bar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+        .menu-bar a:hover, .menu-bar a.active {
+            background-color: #ee0000;
+            color: white;
+        }
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            padding: 20px;
+            margin-top: 60px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #000;
+        }
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 20px;
+        }
+        .property-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .property-card:hover {
+            transform: translateY(-5px);
+        }
+        .property-card h3 {
+            margin-top: 0;
+        }
+        .create-new {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ee0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .create-new:hover {
+            background-color: #cc0000;
+        }
+        .subheader{
+            text-align: center;
+            font-size: 1.0em;
+            color: #8b0000; /* Dork red */
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-weight: 500; /* little bolder */
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-bar" id="menuBar">
+        <a href="home.html" class="active"><i class="fas fa-home"></i> Home</a>
+        <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
+        <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="header-section">
+            <h1>Welcome to DocsBot</h1>
+            <p class="subheader">Select a workspace to begin with</p>
+        </div>
+
+        <div class="property-grid">
+              <script>
+                    function getPropertyDetails() {
+                      // replace with da actual API call logic
+                      const dummyData = [
+                        { "property_name": "SPAship", "tag": "Build fast deploy Faster" },
+                        { "property_name": "Hydra", "tag": "One Stop solution for all integrations" },
+                        { "property_name": "DocsBot", "tag": "Let's make the documentation fun" },
+                        { "property_name": "AppDevPlatform", "tag": "Let's build a platform for developers" }
+                      ];
+
+                      // parse URL query parameters
+                    const queryParams = new URLSearchParams(window.location.search);
+                    const pName = queryParams.get('pName');
+                    const pTag = queryParams.get('pTag');
+
+                    // check if pName and pTag exist and add them to dummyData
+                    if (pName && pTag) {
+                        dummyData.push({ "property_name": pName, "tag": pTag });
+                    }
+
+                      // todo fix this api address thingy
+                      fetch('http://localhost:8000/api/properties')
+                          .then(response => {
+                            if (!response.ok) {
+                              throw new Error('Network response was not ok ' + response.statusText);
+                            }
+                            return response.json();
+                            })
+                          .then(data => generatePropertyCards(data))
+                          .catch(error => {
+                            showPopupWarning("API call failed. Using dummy data. " + error);
+                            generatePropertyCards(dummyData);
+                          });
+                    }
+
+                    function generatePropertyCards(data) {
+                      const propertyGrid = document.querySelector('.property-grid');
+                      propertyGrid.innerHTML = ''; // !clear existing content!
+
+                      for (const property of data) {
+                        const card = document.createElement('div');
+                        card.classList.add('property-card');
+                        card.onclick = function() {
+                          window.location.href = `action.html?property=${property.property_name}`;
+                        };
+
+                        const title = document.createElement('h3');
+                        title.textContent = property.property_name;
+
+                        const description = document.createElement('p');
+                        description.textContent = property.tag;
+
+                        card.appendChild(title);
+                        card.appendChild(description);
+
+                        propertyGrid.appendChild(card);
+                      }
+                    }
+
+                    function showPopupWarning(message) {
+                        const popup = document.createElement('div');
+                        popup.classList.add('popup-warning'); // add a class for styling
+                        popup.textContent = message;
+
+                        // Create a container element for better positioning (optional)
+                        const popupContainer = document.createElement('div');
+                        popupContainer.classList.add('popup-container'); // add a class for styling
+                        popupContainer.appendChild(popup);
+
+                        document.body.appendChild(popupContainer); // apprnd the container
+
+                        const menuBarHeight = document.getElementById('menuBar').offsetHeight;
+
+                        // centering the text inside the popup
+                        popup.style.display = 'flex';
+                        popup.style.justifyContent = 'center';
+                        popup.style.alignItems = 'center';
+                        //popup.style.height = '100%'; ~Don't even try this
+
+                        // Add some styles using inline styles (I am a nuibe please forgive me, not recommended for large projects)
+                        popup.style.backgroundColor = '#A60000';
+                        popup.style.color = 'white';
+                        popup.style.padding = '10px 20px';
+                        popup.style.position = 'fixed'; // make it fixed on the screen
+                        popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
+                        popup.style.width = '100%'; // span the full width of the screen
+                        popup.style.left = '0'; // align with the screen's left edge
+                        popup.style.zIndex = '1000';
+
+                        setTimeout(() => {
+                          document.body.removeChild(popupContainer); // remove the container
+                        }, 5000); // Hide the popup after 5 seconds
+                    }
+
+                    window.onload = getPropertyDetails; // call the function on page load
+                </script>
+        </div>
+
+        <button class="create-new" onclick="window.location.href='create-property.html'">Create New Workspace</button>
+    </div>
+
+    <script>
+    </script>
+</body>
+</html>

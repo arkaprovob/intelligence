@@ -1,18 +1,21 @@
 import os
+import tempfile
+from typing import Optional
 
 from llama_index.core import SimpleDirectoryReader
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.core import Settings
 from huggingface_hub import notebook_login
 from pydantic import BaseModel
-from fastapi import FastAPI, Body, HTTPException
+from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query as FQuery
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
+from data_store_engine import DataStore
 from llmacpp import LlamaProvider
 from prompt import PromptProvider, completion_to_prompt
-from llama_index_query_engine import QueryEngineProvider
-from store import Ingestion
+from query_engine_setup import QueryEngineSetup
+from ingestion_engine import Ingestion
 from fastapi.staticfiles import StaticFiles
 
 from tinydb import TinyDB
@@ -20,6 +23,7 @@ import ssl
 
 from utility import get_config_value
 import logging
+import json
 
 logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s '
                            '[%(filename)s:%(lineno)d] %(message)s',
@@ -43,7 +47,7 @@ key_file = get_config_value("SSL_KEY_PATH")
 
 db = get_config_value("TINY_DB_PATH")
 
-documents = SimpleDirectoryReader(get_config_value("SDR_DIR")).load_data()
+# documents = SimpleDirectoryReader(get_config_value("SDR_DIR")).load_data()
 
 cache_dir = get_config_value("CACHE_DIR")
 
@@ -58,12 +62,13 @@ prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
 llm = LlamaProvider(model_url, prompt_provider.get_system_prompt(), completion_to_prompt,
                     prompt_provider.get_stopping_ids(), model_path=get_config_value("MODEL_PATH"))
 
-ingestion = Ingestion(documents, get_config_value("COLLECTION_NAME"),
-                      embed_model, llm.get_llm(), transform=get_config_value(
-        "TRANSFORM"), use_node_parser=get_config_value("USE_NODE_PARSER"))
-query_engine_provider = QueryEngineProvider(llm.get_llm(),
-                                            ingestion.get_index(rebuild_index=get_config_value(
-                                                "REBUILD_INDEX")))
+# store = DataStore(get_config_value("COLLECTION_NAME"))
+
+
+# todo check if this llm param can set in settings and use it from there instead of explicitly passing it
+ingestion = Ingestion(llm.get_llm())
+
+query_engine = QueryEngineSetup(llm.get_llm())
 
 app = FastAPI()
 app.add_middleware(
@@ -90,15 +95,19 @@ async def health_check():
 
 @app.post('/query-stream/')
 async def stream(query: Query = Body(...)):
-    return StreamingResponse(query_engine_provider.generate_answer(query.query),
-                             media_type='text/event-stream')
+    return {"status": "UP", "message": "method not supported use get instead"}
 
 
 @app.get('/query-stream/')
-async def stream(query: str = None):
+async def stream(query: str = None, property: str = None):
     if not query:
         return {"error": "Query parameter is required."}
-    return StreamingResponse(query_engine_provider.generate_answer(query),
+    if not property:
+        return {"error": "Collection parameter is required."}
+
+    ds = DataStore(property)
+
+    return StreamingResponse(query_engine.generate_answer(query, ds.get_index()),
                              media_type='text/event-stream')
 
 
@@ -106,7 +115,62 @@ async def stream(query: str = None):
 async def save_feedback(feedback_request: FeedbackRequest):
     try:
         # Insert the feedback data into the TinyDB database
-        db.insert(feedback_request.dict())
+        db.insert(feedback_request.model_dump())
         return {"status": "success", "data": feedback_request}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+
+@app.post("/ingest/file")
+async def ingest_documents(
+        file: UploadFile = File(...),
+        use_node_parser: Optional[bool] = Form(True),
+        async_support: Optional[bool] = Form(False),
+        collection_name: str = Form(...),
+        metadata: Optional[str] = Form(None)
+):
+    try:
+        # Create a temporary directory to store the uploaded file
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Save the uploaded file to the temporary directory
+            file_path = os.path.join(temp_dir, file.filename)
+            with open(file_path, "wb") as buffer:
+                buffer.write(await file.read())
+
+            # Create documents using SimpleDirectoryReader
+            docs = SimpleDirectoryReader(temp_dir).load_data()
+
+            # apply metadata to the documents
+            if metadata and len(metadata) > 0:
+                try:
+                    metadata_dict = json.loads(metadata)
+                    for doc in docs:
+                        if not hasattr(doc, 'metadata'):
+                            doc.metadata = {}
+                        for key, value in metadata_dict.items():
+                            doc.metadata[key] = value
+                except json.JSONDecodeError:
+                    print("Error: Metadata is not a valid JSON string.")
+
+        # Perform ingestion
+        ingestion.ingest_documents(
+            documents=docs,
+            use_node_parser=use_node_parser,
+            async_support=async_support,
+            show_progress=True,
+            bucket=DataStore(collection_name)
+        )
+
+        return {"status": "success", "message": "Documents ingested successfully"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred during ingestion: {str(e)}")
+
+
+@app.get('/collections')
+async def get_collections(query: str = FQuery(...)):
+    try:
+        collections = store.get_list_of_collections(query)
+        return collections
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")

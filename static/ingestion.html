@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Ingestion</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Red Hat Text', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .menu-bar {
+            background-color: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .menu-bar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+        .menu-bar a:hover, .menu-bar a.active {
+            background-color: #ee0000;
+            color: white;
+        }
+        .content-wrapper {
+            flex-grow: 1;
+            padding: 20px;
+            margin-top: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #000;
+        }
+        .ingestion-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+        .ingestion-option {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .ingestion-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(238, 0, 0, 0.2);
+        }
+        .ingestion-option i {
+            font-size: 48px;
+            color: #ee0000;
+            margin-bottom: 10px;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1001;
+        }
+        .popup-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 60%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        input[type="text"], input[type="file"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #ee0000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #cc0000;
+        }
+        .table-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 20px auto;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+        .remove-btn, .ingest-btn {
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background-color 0.3s ease;
+        }
+        .remove-btn {
+            background-color: #ff6b6b;
+        }
+        .remove-btn:hover {
+            background-color: #ff4f4f;
+        }
+        .ingest-btn {
+            background-color: #4CAF50;
+        }
+        .ingest-btn:hover {
+            background-color: #45a049;
+        }
+        .section-divider {
+            margin: 30px 0;
+            border-top: 1px solid #ddd;
+            width: 100%;
+            max-width: 800px;
+        }
+        .info-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-text i {
+            margin-right: 8px;
+            color: #ee0000;
+        }
+        .collection-name-container {
+             margin: 20px 0;
+            text-align: center;
+        }
+
+        .collection-name-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .collection-name-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ee0000;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: rgba(238, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(238, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .collection-name-display:hover {
+            box-shadow: 0 0 15px rgba(238, 0, 0, 0.5);
+        }
+
+        .collection-name-input {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ee0000;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 2px solid #ee0000;
+            background-color: white;
+            outline: none;
+        }
+       .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #ee0000; /* RedHat red */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .remove-btn:disabled, .ingest-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .tagline {
+        text-align: center;
+        font-size: 1.2em;
+        color: #8b0000; /* dark red */
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-weight: 500; /* slightly bodler */
+    }
+
+    .info-popup {
+        display: none;
+        position: fixed;
+        z-index: 1002;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .info-popup-content {
+        background-color: #ffffff;
+        margin: 15% auto;
+        padding: 30px;
+        border: none;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 20px;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .info-popup-content h2 {
+        color: #ee0000;
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+
+    .info-popup-content p {
+        color: #333333;
+        line-height: 1.5;
+        font-size: 16px;
+    }
+
+    .close-info-popup {
+        color: #8a8d90;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .close-info-popup:hover,
+    .close-info-popup:focus {
+        color: #ee0000;
+        text-decoration: none;
+    }
+
+    #infoButton {
+        transition: color 0.3s ease;
+    }
+
+    #infoButton:hover {
+        color: #a30000;
+    }
+
+    </style>
+</head>
+<body>
+
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+    <div class="menu-bar" id="menuBar">
+        <a href="home.html"><i class="fas fa-home"></i> Home</a>
+        <a href="#" class="active"><i class="fas fa-file-upload"></i> Ingestion</a>
+        <a href="qna.html" id="qnaLink"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+        <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+    </div>
+
+    <div class="content-wrapper">
+
+        <h1>Configure data sources for ingestion <i class="fas fa-info-circle" id="infoButton" style="cursor: pointer; font-size: 0.8em; vertical-align: super;"></i></h1>
+
+        <div id="infoPopup" class="info-popup" style="display: none;">
+            <div class="info-popup-content">
+                <span class="close-info-popup">&times;</span>
+                <h2>What is this ?</h2>
+                <p>You can add new document sources here. Link your Slack/message channels, and the connectors will work their magic, ingesting that information and turning it into an intelligent knowledge base that you can query.</p>
+            </div>
+        </div>
+
+        <p class="tagline">Let's consolidate all of your documents in one place</p>
+        <div class="collection-name-container">
+            <span class="collection-name-label">Current workspace:</span>
+            <span id="collectionName" class="collection-name-display" contenteditable="false"></span>
+            <input type="text" id="collectionNameInput" class="collection-name-input" style="display: none;">
+        </div>
+        <div class="info-text">
+            <i class="fas fa-info-circle"></i>
+            <span id="connectorInfoText"></span>
+        </div>
+        <div class="ingestion-options">
+            <div class="ingestion-option" onclick="openPopup('slack')">
+                <i class="fab fa-slack"></i>
+                <p>Slack</p>
+            </div>
+            <div class="ingestion-option" onclick="openPopup('source')">
+                <i class="fas fa-link"></i>
+                <p>Source</p>
+            </div>
+            <div class="ingestion-option" onclick="openPopup('file')">
+                <i class="fas fa-file-upload"></i>
+                <p>File Upload</p>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Configured documents and sources list</h2>
+        <div class="table-container">
+            <table id="entriesTable">
+                <thead>
+                    <tr>
+                        <th>Link/File Name</th>
+                        <th>Source</th>
+                        <th>Metadata</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Popup Wizards -->
+    <div id="slackPopup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup('slack')">&times;</span>
+            <h2>Slack Ingestion</h2>
+            <input type="text" id="slackUrl" placeholder="Enter Slack channel URL">
+            <input type="text" id="slackApiKey" placeholder="API Key">
+            <input type="text" id="slackId" placeholder="ID">
+            <input type="text" id="slackAccessKey" placeholder="Access Key (Optional)">
+            <textarea id="slackMetadata" placeholder="Metadata (JSON format)"></textarea>
+            <button class="btn" onclick="addItem('slack')">Add</button>
+        </div>
+    </div>
+
+    <div id="sourcePopup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup('source')">&times;</span>
+            <h2>Source Ingestion</h2>
+            <input type="text" id="sourceUrl" placeholder="Enter source URL">
+            <input type="text" id="sourceApiKey" placeholder="API Key">
+            <input type="text" id="sourceId" placeholder="ID">
+            <input type="text" id="sourceAccessKey" placeholder="Access Key (Optional)">
+            <textarea id="sourceMetadata" placeholder="Metadata (JSON format)"></textarea>
+            <button class="btn" onclick="addItem('source')">Add</button>
+        </div>
+    </div>
+
+    <div id="filePopup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup('file')">&times;</span>
+            <h2>File Upload</h2>
+            <input type="file" id="fileUpload" multiple>
+            <textarea id="fileMetadata" placeholder="Metadata (JSON format)"></textarea>
+            <button class="btn" onclick="addItem('file')">Add</button>
+        </div>
+    </div>
+
+
+    <script>
+        function openPopup(type) {
+            document.getElementById(type + 'Popup').style.display = 'block';
+        }
+
+        function closePopup(type) {
+            document.getElementById(type + 'Popup').style.display = 'none';
+        }
+
+        function addItem(type) {
+            const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+            const row = table.insertRow();
+            let cellContent = '';
+
+            if (type === 'file') {
+                const files = document.getElementById('fileUpload').files;
+                cellContent = Array.from(files).map(f => f.name).join(', ');
+            } else {
+                cellContent = document.getElementById(type + 'Url').value;
+            }
+
+            const metadata = document.getElementById(type + 'Metadata').value;
+
+             row.innerHTML = `
+                    <td>${cellContent}</td>
+                    <td>${type}</td>
+                    <td>${metadata}</td>
+                    <td>
+                        <button class="remove-btn" onclick="this.closest('tr').remove()">Remove</button>
+                        <button class="ingest-btn" onclick="ingestItem(this)">Ingest</button>
+                    </td>
+                `;
+
+
+            closePopup(type);
+        }
+
+        async function ingestItem(button) {
+            const row = button.closest('tr');
+            const cells = row.cells;
+            const itemName = cells[0].textContent;
+            const itemType = cells[1].textContent;
+            const itemMetadata = cells[2].textContent;
+            const collectionName = document.getElementById('collectionNameInput').value.trim();
+
+
+            if (!collectionName) {
+                showPopupWarning('Please enter a collection name before ingesting.');
+                return;
+            }
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            const data = {
+                collection_name: collectionName,
+                item_name: itemName,
+                item_type: itemType,
+                metadata: itemMetadata
+            };
+
+            // add type-specific data
+            if (itemType === 'slack') {
+                data.url = document.getElementById('slackUrl').value;
+                data.api_key = document.getElementById('slackApiKey').value;
+                data.id = document.getElementById('slackId').value;
+                data.access_key = document.getElementById('slackAccessKey').value;
+            } else if (itemType === 'source') {
+                data.url = document.getElementById('sourceUrl').value;
+                data.api_key = document.getElementById('sourceApiKey').value;
+                data.id = document.getElementById('sourceId').value;
+                data.access_key = document.getElementById('sourceAccessKey').value;
+            } else if (itemType === 'file') {
+                const fileInput = document.getElementById('fileUpload');
+                if (fileInput.files.length > 0) {
+                    data.file = fileInput.files[0];
+                }
+            }
+
+            // handling uploading info to server
+            try {
+                button.disabled = true;
+                button.textContent = 'Ingesting...';
+                loadingOverlay.style.display = 'flex';
+
+
+                let response;
+
+                if (itemType === 'file') {
+                    // Get the file input element
+                    const fileInput = document.getElementById('fileUpload');
+
+                    // Check if there's a file selected
+                    if (fileInput.files.length === 0) {
+                        throw new Error('No file selected for ingestion');
+                    }
+
+                    // Create FormData object
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    formData.append('use_node_parser', 'true');
+                    formData.append('async_support', 'false');
+                    formData.append('collection_name', collectionName);
+                    formData.append('metadata', itemMetadata);
+
+                    // simulate a 5second loading time
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+
+                    // send the file data to the server
+                    response = await fetch('http://localhost:8000/ingest/file', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    const formData = new FormData();
+                    for (const key in data) {
+                        formData.append(key, data[key]);
+                    }
+
+                    const response = await fetch('http://localhost:63342/ingest', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                }
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Ingestion successful:', result);
+                    row.remove();
+                } else {
+                    throw new Error('Ingestion failed');
+                }
+            } catch (error) {
+                console.error('Error during ingestion:', error);
+                showPopupWarning('An error occurred during ingestion. ['+error+'] Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Ingest';
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Load existing entries
+        function loadExistingEntries() {
+            const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+
+            // simulating API call with dummy data
+            const dummyData = [
+                { name: 'Example Slack Channel', source: 'slack', metadata: '{"key": "value"}', fromDB: true },
+                { name: 'https://example.com/data', source: 'source', metadata: '{"type": "web"}', fromDB: true },
+                { name: 'document.pdf', source: 'file', metadata: '{"size": "1MB"}', fromDB: true }
+            ];
+
+            dummyData.forEach(item => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.source}</td>
+                    <td>${item.metadata}</td>
+                    <td>
+                        <button class="remove-btn" onclick="this.closest('tr').remove()" ${item.fromDB ? 'disabled' : ''}>Remove</button>
+                        <button class="ingest-btn" onclick="ingestItem(this)" ${item.fromDB ? 'disabled' : ''}>Ingest</button>
+                    </td>
+                `;
+            });
+
+        }
+
+        // load existing entries when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExistingEntries();
+
+            const infoButton = document.getElementById('infoButton');
+            const infoPopup = document.getElementById('infoPopup');
+            const closeInfoPopup = infoPopup.querySelector('.close-info-popup');
+
+            infoButton.addEventListener('click', function() {
+                infoPopup.style.display = 'block';
+            });
+
+            closeInfoPopup.addEventListener('click', function() {
+                infoPopup.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target == infoPopup) {
+                    infoPopup.style.display = 'none';
+                }
+            });
+
+
+            const infoTextElement = document.getElementById('connectorInfoText');
+
+            // todo duplicate code in the same function, combine the logic and use one query param parser
+            const currentUrl = new URL(window.location.href);
+            const qp = currentUrl.searchParams;
+            const settingsUrl = 'settings.html' + (qp.toString() ? '?' + qp.toString() : '');
+            infoTextElement.innerHTML = `Explore your active connectors below. Three pre-built options are available, or create custom connectors in <a href="${settingsUrl}">settings</a> for specialized data sources.`;
+
+            // get the Q&A link element
+            const qnaLink = document.getElementById('qnaLink');
+            const settingsLink = document.getElementById('settingsLink');
+
+            // if there are query parameters, append them to the Q&A link
+            if (qp.toString()) {
+                qnaLink.href = `qna.html?${qp.toString()}`;
+                settingsLink.href = `settings.html?${qp.toString()}`;
+
+            }
+
+
+
+            const collectionNameDisplay = document.getElementById('collectionName');
+            const collectionNameInput = document.getElementById('collectionNameInput');
+
+            // load initial value
+            const queryParams = new URLSearchParams(window.location.search);
+            const propertyParam = queryParams.get('property');
+            if (propertyParam) {
+                const transformedPropertyParam = propertyParam.toLowerCase().replace(/\s+/g, '_');
+                collectionNameDisplay.textContent = transformedPropertyParam;
+                collectionNameInput.value = transformedPropertyParam;
+            }
+
+            // toggle edit mode
+            collectionNameDisplay.addEventListener('click', function() {
+                collectionNameDisplay.style.display = 'none';
+                collectionNameInput.style.display = 'inline-block';
+                collectionNameInput.value = collectionNameDisplay.textContent;
+                collectionNameInput.focus();
+            });
+
+            // save on enter key
+            collectionNameInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    saveCollectionName();
+                }
+            });
+
+            // save on blur
+            collectionNameInput.addEventListener('blur', saveCollectionName);
+
+            function saveCollectionName() {
+                collectionNameDisplay.textContent = collectionNameInput.value;
+                collectionNameInput.style.display = 'none';
+                collectionNameDisplay.style.display = 'inline-block';
+
+                // add code to save the new name to our backend if needed
+            }
+        });
+
+
+        function showPopupWarning(message) {
+            const popup = document.createElement('div');
+            popup.classList.add('popup-warning'); // add a class for styling
+            popup.textContent = message;
+
+            // create a container element for better positioning (optional)
+            const popupContainer = document.createElement('div');
+            popupContainer.classList.add('popup-container'); // add a class for styling
+            popupContainer.appendChild(popup);
+
+            document.body.appendChild(popupContainer); // append the container
+
+            const menuBarHeight = document.getElementById('menuBar').offsetHeight;
+
+            // Centering the text inside the popup
+            popup.style.display = 'flex';
+            popup.style.justifyContent = 'center';
+            popup.style.alignItems = 'center';
+            //popup.style.height = '100%'; ~Don't even try this
+
+            // add some styles using inline styles (not recommended)
+            popup.style.backgroundColor = '#A60000';
+            popup.style.color = 'white';
+            popup.style.padding = '10px 20px';
+            popup.style.position = 'fixed'; // make it fixed on the screen
+            popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
+            popup.style.width = '100%'; // span the full width of the screen
+            popup.style.left = '0'; // align with the screen's left edge
+            popup.style.zIndex = '1000';
+
+            setTimeout(() => {
+              document.body.removeChild(popupContainer); // remove the container
+            }, 5000); // hide the popup after 5 seconds
+        }
+    </script>
+</body>
+</html>

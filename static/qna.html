@@ -2,92 +2,299 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Text Stream Display</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCS-BOT Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        .container {
+        body {
+            font-family: 'Red Hat Text', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Center the items vertically */
-            justify-content: start; /* Align content to start */
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
-        .text-output {
-            width: 90%; /* Adjusted width for better display */
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px;
-            overflow-wrap: break-word;
-            white-space: pre-wrap; /* Ensure that text formatting is preserved */
-            height: 300px; /* Fixed height with overflow */
-            overflow-y: auto; /* Enable vertical scrolling */
+        .menu-bar {
+            background-color: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            transition: top 0.3s;
+            z-index: 1000;
         }
-        .questionInput{
-            width: 90%;
-            padding: 10px;
-            margin: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .menu-bar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
         }
-        .sbmt{
-            padding: 10px;
-            margin: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #4CAF50;
+        .menu-bar a:hover {
+            background-color: #ee0000;
             color: white;
-            cursor: pointer;
+        }
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 20px;
+            margin-top: 50px;
+        }
+        .container {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        h2 {
+            text-align: center;
+            color: #000;
+            margin-bottom: 1rem;
+        }
+        #chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            max-width: 80%;
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 20px;
+            line-height: 1.4;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #ee0000;
+            color: white;
+        }
+        .bot-message {
+            align-self: flex-start;
+            background-color: #f0f0f0;
+            color: #333;
         }
         #questionForm {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            //width: 100%;
+            padding: 1rem;
+            border-top: 1px solid #ccc;
+        }
+        .questionInput {
+            flex-grow: 1;
+            padding: 0.75rem;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+        .sbmt {
+            background-color: #ee0000;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .sbmt:hover {
+            background-color: #cc0000;
+        }
+        .sbmt:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>DOCS-BOT Demo</h2>
+    <div class="menu-bar" id="menuBar">
+        <a href="home.html"><i class="fas fa-home"></i> Home</a>
+        <a href="ingestion.html" id="ingestionLink"><i class="fa-solid fa-lungs-virus"></i> Ingestion</a>
+    </div>
 
-    <br/><br/><br/>
-    <form id="questionForm">
-        <input type="text" id="questionInput" class="questionInput" placeholder="Enter your question here">
-        <button class="sbmt" type="submit">Docs-Bot, reveal!</button>
-    </form>
-    <github-md id="output1" class="text-output"></github-md>
-</div>
-<script>
-    document.getElementById('questionForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        const question = document.getElementById('questionInput').value;
-        const encodedQuestion = encodeURIComponent(question);
-        const requestURL = `http://localhost:8000/query-stream?query=${encodedQuestion}`;
+    <div class="content-wrapper">
+        <div class="container">
+            <h2>DOCS-BOT Demo</h2>
+            <div id="chat-history"></div>
+            <form id="questionForm">
+                <input type="text" id="questionInput" class="questionInput" placeholder="Enter your question here">
+                <button class="sbmt" type="submit"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
 
-        // Close any existing EventSource connection
-        if (window.eventSource) {
-            window.eventSource.close();
+    <script>
+        const questionForm = document.getElementById('questionForm');
+        const questionInput = document.getElementById('questionInput');
+        const submitButton = document.querySelector('.sbmt');
+
+        let isStreaming = false;
+
+        function updateSubmitButtonState() {
+            submitButton.disabled = !questionInput.value.trim() || isStreaming;
         }
 
-        // Initialize a new EventSource connection
-        window.eventSource = new EventSource(requestURL);
-        let fullText = ''; // Reset fullText for new request
+        questionInput.addEventListener('input', updateSubmitButtonState);
 
-        window.eventSource.onmessage = function(event) {
-            const data = JSON.parse(event.data);
+        questionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const question = questionInput.value.trim();
 
-            // Check if there's text data to append
-            // else if (data.tokens_per_second) {console.log(`Tokens per second: ${data.tokens_per_second}`);}
-            if (data.text) {
-                fullText += data.text; // Append the new text to the full text
-                document.getElementById("output1").innerHTML = fullText;
+            if (!question) {
+                showPopupWarning("Error: Question cannot be empty.");
+                return;
             }
-            else if (data.done) {
-                console.log("Stream ended");
-                console.log(data.text);
+
+            addMessage(question, 'user-message');
+            questionInput.value = '';
+
+            const encodedQuestion = encodeURIComponent(question);
+
+            // Get current URL parameters
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams(currentUrl.search);
+
+            // Ensure the 'property' parameter exists (todo: refactor 'property' to 'workspace')
+            if (!params.has('property')) {
+                showPopupWarning("Error: 'property' parameter is missing from the URL.");
+                return;
+            }
+
+            // Construct the request URL with both query and property parameters
+            const requestURL = `http://localhost:8000/query-stream/?query=${encodedQuestion}&property=${params.get('property')}`;
+
+            if (window.eventSource) {
                 window.eventSource.close();
             }
-        };
-    });
-</script>
+
+            isStreaming = true;
+            updateSubmitButtonState();
+
+            window.eventSource = new EventSource(requestURL);
+            let fullText = '';
+
+            window.eventSource.onopen = function(event) {
+                console.log("Connection opened");
+            };
+
+            window.eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+
+                if (data.text) {
+                    fullText += data.text;
+                    updateBotMessage(fullText);
+                }
+                else if (data.done) {
+                    console.log("Stream ended");
+                    window.eventSource.close();
+                    isStreaming = false;
+                    updateSubmitButtonState();
+                }
+            };
+
+            window.eventSource.onerror = function(error) {
+                console.error('EventSource failed:', error);
+                showPopupWarning('Error: Failed to get response from server.');
+                addMessage('Error: Failed to get response from server.', 'bot-message error');
+                window.eventSource.close();
+                // Remove the event source to prevent reconnection attempts
+                window.eventSource = null;
+                isStreaming = false;
+                updateSubmitButtonState();
+            };
+        });
+
+        function addMessage(text, className) {
+            const chatHistory = document.getElementById('chat-history');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', className);
+            messageElement.textContent = text;
+            chatHistory.appendChild(messageElement);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function updateBotMessage(text) {
+            const chatHistory = document.getElementById('chat-history');
+            let botMessage = chatHistory.querySelector('.bot-message:last-child');
+
+            if (!botMessage) {
+                botMessage = document.createElement('div');
+                botMessage.classList.add('message', 'bot-message');
+                chatHistory.appendChild(botMessage);
+            }
+
+            botMessage.textContent = text;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUrl = new URL(window.location.href);
+            const qp = currentUrl.searchParams;
+            const ingestionLink = document.getElementById('ingestionLink');
+
+            if (qp.toString()) {
+                ingestionLink.href = `ingestion.html?${qp.toString()}`;
+            }
+
+            // Initial state
+            updateSubmitButtonState();
+        });
+
+        let activePopup = null;
+        function showPopupWarning(message) {
+            if (activePopup) {
+                document.body.removeChild(activePopup);
+            }
+
+            const popup = document.createElement('div');
+            popup.classList.add('popup-warning');
+            popup.textContent = message;
+
+            const popupContainer = document.createElement('div');
+            popupContainer.classList.add('popup-container');
+            popupContainer.appendChild(popup);
+
+            document.body.appendChild(popupContainer);
+            activePopup = popupContainer;
+
+            const menuBarHeight = document.getElementById('menuBar').offsetHeight;
+
+            popup.style.display = 'flex';
+            popup.style.justifyContent = 'center';
+            popup.style.alignItems = 'center';
+            popup.style.backgroundColor = '#A60000';
+            popup.style.color = 'white';
+            popup.style.padding = '10px 20px';
+            popup.style.position = 'fixed';
+            popup.style.top = menuBarHeight + 'px';
+            popup.style.width = '100%';
+            popup.style.left = '0';
+            popup.style.zIndex = '1000';
+
+            setTimeout(() => {
+                if (activePopup === popupContainer) {
+                    document.body.removeChild(popupContainer);
+                    activePopup = null;
+                }
+            }, 5000);
+        }
+    </script>
+
+
 </body>
-<script src="https://cdn.jsdelivr.net/gh/MarketingPipeline/Markdown-Tag/markdown-tag-GitHub.js"></script>
 </html>

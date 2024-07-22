@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocsBot Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: "RedHatDisplay",Helvetica,Arial,sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .menu-bar {
+            background-color: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .menu-bar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+        .menu-bar a:hover, .menu-bar a.active {
+            background-color: #ee0000;
+            color: white;
+        }
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 20px;
+            margin-top: 50px; /* space for the menu bar */
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #000;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            margin-bottom: 1rem;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .checkbox-group input {
+            margin-right: 0.5rem;
+        }
+        button {
+            background-color: #ee0000;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* style for datalist options */
+        datalist {
+            width: 100%;
+        }
+
+        option {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+
+        option:hover {
+            background-color: #f0f0f0;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="menu-bar" id="menuBar">
+        <a href="home.html"><i class="fas fa-home"></i> Home</a>
+        <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
+        <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+    </div>
+
+    <div class="content-wrapper">
+
+        <div class="container">
+            <h1>New workspace</h1>
+            <form class="create-property-form" action="http://google.com/api/create-property" method="POST">
+                <label for="propertyName">Name:</label>
+                <input type="text" id="propertyName" name="propertyName" required>
+
+                <label for="domainPurpose">Domain/Purpose:</label>
+                <input type="text" id="domainPurpose" name="domainPurpose" required>
+
+                <label for="stag">Tag line:</label>
+                <input type="text" id="stag" name="stag" required>
+
+                <div class="checkbox-group">
+                        <input type="checkbox" id="isPublic" name="isPublic" checked>
+                        <label for="isPublic">Show on property listing</label>
+                </div>
+
+                <button type="submit">Create Property</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.querySelector('.create-property-form');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // prevent default form submission
+
+            // using fetch to submit the form data asynchronously
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'Accept': 'application/json', // server must reponse in json format
+                    // Add any other necessary headers
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // redirect on success
+                    window.location.href = 'home.html';
+                } else {
+                    // handle non-OK responses
+                    showPopupWarning('Error creating property. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting form:', error);
+                const propertyNameValue = document.getElementById('propertyName').value;
+                const stagValue = document.getElementById('stag').value;
+                window.location.href = `home.html?pName=${encodeURIComponent(propertyNameValue)}&pTag=${encodeURIComponent(stagValue)}`;
+            });
+        });
+
+        window.addEventListener('load', () => {
+            if (window.location.search.includes('success=true')) {
+                alert('Property created successfully!');
+                // additional logic before redirection (optional)
+            }
+        });
+
+
+        function showPopupWarning(message) {
+            const popup = document.createElement('div');
+            popup.classList.add('popup-warning'); // add a class for styling
+            popup.textContent = message;
+
+            // create a container element for better positioning (optional)
+            const popupContainer = document.createElement('div');
+            popupContainer.classList.add('popup-container'); // add a class for styling
+            popupContainer.appendChild(popup);
+
+            document.body.appendChild(popupContainer); // append the container
+            const menuBarHeight = document.getElementById('menuBar').offsetHeight;
+
+            // centering the text inside the popup
+            popup.style.display = 'flex';
+            popup.style.justifyContent = 'center';
+            popup.style.alignItems = 'center';
+            //popup.style.height = '100%'; ~Don't even try this
+
+            // add some styles using inline styles (not recommended for large projects)
+            popup.style.backgroundColor = '#A60000';
+            popup.style.color = 'white';
+            popup.style.padding = '10px 20px';
+            popup.style.position = 'fixed'; // Make it fixed on the screen
+            popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
+            popup.style.width = '100%'; // span the full width of the screen
+            popup.style.left = '0'; // align with the screen's left edge
+            popup.style.zIndex = '1000';
+
+            setTimeout(() => {
+              document.body.removeChild(popupContainer); // remove the container
+            }, 5000); // hide the popup after 5 seconds
+        }
+    </script>
+</body>
+</html>

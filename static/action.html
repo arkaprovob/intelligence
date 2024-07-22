@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocsBot Actions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Red Hat Text', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .menu-bar {
+            background-color: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .menu-bar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+        .menu-bar a:hover, .menu-bar a.active {
+            background-color: #ee0000;
+            color: white;
+        }
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 20px;
+            margin-top: 60px;
+        }
+        h1 {
+            text-align: center;
+            color: #000;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+        .action-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 150px;
+        }
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(166, 0, 0, 0.2);
+        }
+        .action-card i {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #ee0000;
+        }
+        .action-card h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-bar" id="menuBar">
+        <a href="home.html"><i class="fas fa-home"></i> Home</a>
+        <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
+        <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+    </div>
+
+    <div class="content-wrapper">
+        <h1>Where should we start ?</h1>
+
+        <div class="action-grid">
+            <div class="action-card" onclick="window.location.href='ingestion.html'">
+                <i class="fas fa-file-upload"></i>
+                <h3>Add new source</h3>
+            </div>
+            <div class="action-card" onclick="window.location.href='qna.html'">
+                <i class="fa-solid fa-file-circle-question"></i>
+                <h3>Q&A</h3>
+            </div>
+            <div class="action-card" onclick="window.location.href='#'">
+                <i class="fas fa-project-diagram"></i>
+                <h3>Build My own flow</h3>
+            </div>
+            <div class="action-card" onclick="window.location.href='settings.html'">
+                <i class="fas fa-cog"></i>
+                <h3>Settings</h3>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const queryParams = new URLSearchParams(window.location.search);
+    const property = queryParams.get('property');
+    const actionCards = document.querySelectorAll('.action-card');
+
+    actionCards.forEach(card => {
+        const originalHref = card.getAttribute('onclick').match(/window.location.href='([^']+)'/)[1];
+        const newHref = property ? `${originalHref}?property=${encodeURIComponent(property)}` : originalHref;
+        card.setAttribute('onclick', `window.location.href='${newHref}'`);
+    });
+});
+</script>
+
+</body>
+</html>

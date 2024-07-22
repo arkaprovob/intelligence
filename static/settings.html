@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocsBot Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Red Hat Text', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .menu-bar {
+            background-color: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .menu-bar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+        .menu-bar a:hover, .menu-bar a.active {
+            background-color: #ee0000;
+            color: white;
+        }
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            padding: 20px;
+            margin-top: 60px;
+        }
+        h1 {
+            text-align: center;
+            color: #000;
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 20px;
+        }
+        .settings-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .settings-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(166, 0, 0, 0.2);
+        }
+        .settings-card i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #ee0000;
+        }
+        .settings-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .settings-card p {
+            font-size: 14px;
+            color: #666;
+        }
+        .fine-tuning-options {
+            margin-top: 10px;
+        }
+
+        .fine-tuning-options button {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .fine-tuning-options button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .settings-card.expanded {
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-bar" id="menuBar">
+        <a href="home.html"><i class="fas fa-home"></i> Home</a>
+        <a href="action.html" id="action"><i class="fas fa-tasks"></i> Actions</a>
+        <a href="settings.html" class="active" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+    </div>
+
+    <div class="content-wrapper">
+        <h1>DocsBot Settings</h1>
+
+        <div class="settings-grid">
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-puzzle-piece"></i>
+                <h3>Change Chunk Settings</h3>
+                <p>Adjust document chunking parameters</p>
+            </div>
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-plus-circle"></i>
+                <h3>Add a New Store</h3>
+                <p>Create a new data storage location</p>
+            </div>
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-exchange-alt"></i>
+                <h3>Change Store Provider</h3>
+                <p>Switch between different storage providers</p>
+            </div>
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-sort-amount-up"></i>
+                <h3>Configure Re-Ranking Models</h3>
+                <p>Set up and adjust re-ranking algorithms</p>
+            </div>
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-magic"></i>
+                <h3>Add Data Transformation Technique</h3>
+                <p>Implement new data processing methods</p>
+            </div>
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-plug"></i>
+                <h3>Add a New Connector</h3>
+                <p>Integrate with external data sources</p>
+            </div>
+
+
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-chart-line"></i>
+                <h3>RAG Evaluation Matrix</h3>
+                <p>Analyze and evaluate RAG performance</p>
+            </div>
+            <div class="settings-card" onclick="showFineTuningOptions(this)">
+                <i class="fas fa-sliders-h"></i>
+                <h3>Fine Tuning</h3>
+                <p>Finetune models</p>
+                <div class="fine-tuning-options" style="display: none;">
+                    <button onclick="window.location.href='#'">Embedding Fine Tuning</button>
+                    <button onclick="window.location.href='#'">Reranker Fine Tuning</button>
+                    <button onclick="window.location.href='#'">Inference Model Fine Tuning</button>
+                </div>
+            </div>
+
+            <div class="settings-card" onclick="window.location.href='#'">
+                <i class="fas fa-user-lock"></i>
+                <h3>Configure Access</h3>
+                <p>Manage user permissions and access controls</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUrl = new URL(window.location.href);
+            const qp = currentUrl.searchParams;
+            const qnaLink = document.getElementById('action');
+            const settingsLink = document.getElementById('settingsLink');
+
+            if (qp.toString()) {
+                qnaLink.href = `action.html?${qp.toString()}`;
+                settingsLink.href = `settings.html?${qp.toString()}`;
+            }
+
+
+        });
+        function showFineTuningOptions(card) {
+            const options = card.querySelector('.fine-tuning-options');
+            if (options.style.display === 'none') {
+                options.style.display = 'block';
+                card.classList.add('expanded');
+            } else {
+                options.style.display = 'none';
+                card.classList.remove('expanded');
+            }
+        }
+
+    </script>
+
+</body>
+</html>
