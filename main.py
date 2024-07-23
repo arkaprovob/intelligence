@@ -99,13 +99,13 @@ async def stream(query: Query = Body(...)):
 
 
 @app.get('/query-stream/')
-async def stream(query: str = None, property: str = None):
+async def stream(query: str = None, workstream: str = None):
     if not query:
         return {"error": "Query parameter is required."}
-    if not property:
-        return {"error": "Collection parameter is required."}
+    if not workstream:
+        return {"error": "Collection name is required."}
 
-    ds = DataStore(property)
+    ds = DataStore(workstream)
 
     return StreamingResponse(query_engine.generate_answer(query, ds.get_index()),
                              media_type='text/event-stream')
@@ -170,6 +170,7 @@ async def ingest_documents(
 @app.get('/collections')
 async def get_collections(query: str = FQuery(...)):
     try:
+        store = DataStore("none")
         collections = store.get_list_of_collections(query)
         return collections
     except Exception as e:

@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOCS-BOT Demo</title>
+    <title>Q&A</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Red Hat Text', Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Poppins', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             display: flex;
             flex-direction: column;
@@ -24,6 +25,7 @@
             top: 0;
             transition: top 0.3s;
             z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .menu-bar a {
             float: left;
@@ -33,6 +35,7 @@
             padding: 14px 16px;
             text-decoration: none;
             font-size: 17px;
+            transition: background-color 0.3s;
         }
         .menu-bar a:hover {
             background-color: #ee0000;
@@ -44,15 +47,15 @@
             align-items: center;
             flex-grow: 1;
             padding: 20px;
-            margin-top: 50px;
+            margin-top: 70px;
         }
         .container {
             background-color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 600px;
+            max-width: 50%;
             display: flex;
             flex-direction: column;
             height: 80vh;
@@ -60,7 +63,8 @@
         h2 {
             text-align: center;
             color: #000;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
         }
         #chat-history {
             flex-grow: 1;
@@ -71,28 +75,34 @@
         }
         .message {
             max-width: 80%;
-            padding: 0.5rem 1rem;
-            margin-bottom: 0.5rem;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1rem;
             border-radius: 20px;
-            line-height: 1.4;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .user-message {
             align-self: flex-end;
             background-color: #ee0000;
             color: white;
+            border-bottom-right-radius: 4px;
         }
         .bot-message {
             align-self: flex-start;
             background-color: #f0f0f0;
             color: #333;
+            border-bottom-left-radius: 4px;
         }
         #questionForm {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            //width: 100%;
             padding: 1rem;
-            border-top: 1px solid #ccc;
+            border-top: 1px solid #eee;
         }
         .questionInput {
             flex-grow: 1;
@@ -101,6 +111,11 @@
             border: 1px solid #ccc;
             border-radius: 20px;
             font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .questionInput:focus {
+            outline: none;
+            border-color: #ee0000;
         }
         .sbmt {
             background-color: #ee0000;
@@ -110,14 +125,52 @@
             font-size: 1rem;
             border-radius: 50%;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.1s;
         }
         .sbmt:hover {
             background-color: #cc0000;
+            transform: scale(1.05);
         }
         .sbmt:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        h2 #interacting-with {
+            color: #000;
+        }
+        h2 #property-value {
+            color: #ee0000;
+            font-weight: 700;
+        }
+        .typing-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #f0f0f0;
+            border-radius: 20px;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+        }
+        .typing-indicator span {
+            height: 10px;
+            width: 10px;
+            float: left;
+            margin: 0 1px;
+            background-color: #9E9EA1;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+        .typing-indicator span:nth-of-type(1) {
+            animation: 1s blink infinite 0.3333s;
+        }
+        .typing-indicator span:nth-of-type(2) {
+            animation: 1s blink infinite 0.6666s;
+        }
+        .typing-indicator span:nth-of-type(3) {
+            animation: 1s blink infinite 0.9999s;
+        }
+        @keyframes blink {
+            50% { opacity: 1; }
         }
     </style>
 </head>
@@ -129,7 +182,7 @@
 
     <div class="content-wrapper">
         <div class="container">
-            <h2>DOCS-BOT Demo</h2>
+            <h2><span id="interacting-with">Chat with </span><span id="property-value"></span></h2>
             <div id="chat-history"></div>
             <form id="questionForm">
                 <input type="text" id="questionInput" class="questionInput" placeholder="Enter your question here">
@@ -175,8 +228,11 @@
                 return;
             }
 
+            // transform the property param replace any space or plus sign with underscore and convert to lowercase
+            transformed_property = params.get('property').replace(/[\s\+]/g, '_').toLowerCase();
+
             // Construct the request URL with both query and property parameters
-            const requestURL = `http://localhost:8000/query-stream/?query=${encodedQuestion}&property=${params.get('property')}`;
+            const requestURL = `http://localhost:8000/query-stream/?query=${encodedQuestion}&workstream=${transformed_property}`;
 
             if (window.eventSource) {
                 window.eventSource.close();
@@ -197,6 +253,10 @@
 
                 if (data.text) {
                     fullText += data.text;
+
+                    if (fullText.includes("Empty Response")) {
+                        fullText = "Sorry, I couldn't find an answer to your question. Please ask another question or rephrase the question";
+                    }
                     updateBotMessage(fullText);
                 }
                 else if (data.done) {
@@ -226,9 +286,31 @@
             messageElement.textContent = text;
             chatHistory.appendChild(messageElement);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            if (className === 'user-message') {
+                showTypingIndicator();
+            }
+        }
+
+        function showTypingIndicator() {
+            const chatHistory = document.getElementById('chat-history');
+            const typingIndicator = document.createElement('div');
+            typingIndicator.classList.add('typing-indicator');
+            typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+            chatHistory.appendChild(typingIndicator);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const chatHistory = document.getElementById('chat-history');
+            const typingIndicator = chatHistory.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                chatHistory.removeChild(typingIndicator);
+            }
         }
 
         function updateBotMessage(text) {
+            hideTypingIndicator();
             const chatHistory = document.getElementById('chat-history');
             let botMessage = chatHistory.querySelector('.bot-message:last-child');
 
@@ -246,6 +328,9 @@
             const currentUrl = new URL(window.location.href);
             const qp = currentUrl.searchParams;
             const ingestionLink = document.getElementById('ingestionLink');
+
+            const propertyValue = qp.get('property') || 'Unknown Property';
+            document.getElementById('property-value').textContent = propertyValue;
 
             if (qp.toString()) {
                 ingestionLink.href = `ingestion.html?${qp.toString()}`;
