@@ -16,9 +16,13 @@ ipywidgets
 bitsandbytes
 llama-cpp-python
 llama-index-llms-llama-cpp
-fastapi
-tinydb
-uvicorn[standard]
+fastapi~=0.111.0
+tinydb~=4.8.0
+uvicorn[standard]~=0.30.1
 cryptography
 requests
 numpy<2.0.0
+huggingface-hub~=0.20.3
+pydantic~=2.7.4
+starlette~=0.37.2
+torch~=2.5.0.dev20240620

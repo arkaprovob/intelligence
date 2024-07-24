@@ -27,6 +27,16 @@ logging.basicConfig(
 )
 
 
+async def _stream_response(response):
+    try:
+        for text in response.response_gen:
+            yield text
+            await asyncio.sleep(0)  # Allow other coroutines to run
+    except Exception as e:
+        logging.error(f"Error streaming response: {str(e)}")
+        yield f"Error streaming response: {str(e)}"
+
+
 class QueryEngineSetup:
     def __init__(self, llm_pool: LLMPool, index: VectorStoreIndex = None):
         self.llm_pool = llm_pool
@@ -136,7 +146,7 @@ class QueryEngineSetup:
 
             now = time.time()
             response = _query_engine.query(query)
-            async for text in self._stream_response(response):
+            async for text in _stream_response(response):
                 yield f"data: {json.dumps({'text': text})}\n\n"
             yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True})}\n\n"
         except Exception as e:
@@ -146,11 +156,3 @@ class QueryEngineSetup:
             if llm_instance:
                 await self.llm_pool.release_instance(llm_instance)
 
-    async def _stream_response(self, response):
-        try:
-            for text in response.response_gen:
-                yield text
-                await asyncio.sleep(0)  # Allow other coroutines to run
-        except Exception as e:
-            logging.error(f"Error streaming response: {str(e)}")
-            yield f"Error streaming response: {str(e)}"

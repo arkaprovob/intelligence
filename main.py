@@ -14,7 +14,7 @@ from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from data_store_engine import DataStore
-from llmacpp import LlamaProvider, LLMPool
+from llmacpp import LLMPool
 from prompt import PromptProvider, completion_to_prompt
 from query_engine_setup import QueryEngineSetup
 from ingestion_engine import Ingestion
@@ -56,8 +56,6 @@ key_file = get_config_value("SSL_KEY_PATH")
 
 db = get_config_value("TINY_DB_PATH")
 
-# documents = SimpleDirectoryReader(get_config_value("SDR_DIR")).load_data()
-
 cache_dir = get_config_value("CACHE_DIR")
 
 embed_model = FastEmbedEmbedding(model_name=get_config_value("EMBEDDING_MODEL"),
@@ -69,11 +67,8 @@ model_url = get_config_value("MODEL_URL")
 
 prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
 
-# llm = LlamaProvider(model_url, prompt_provider.get_system_prompt(), completion_to_prompt,
-#                     prompt_provider.get_stopping_ids(), model_path=get_config_value("MODEL_PATH"))
-
 llm_pool = LLMPool(
-    num_instances=4,
+    num_instances=1,
     model_url=model_url,
     system_prompt=prompt_provider.get_system_prompt(),
     completion_to_prompt=completion_to_prompt,
@@ -82,8 +77,8 @@ llm_pool = LLMPool(
 )
 
 # todo check if this llm param can set in settings and use it from there instead of explicitly passing it
-ingestion = None  # Will be initialized in lifespan
-query_engine = None  # Will be initialized in lifespan
+ingestion: Ingestion = None  # Will be initialized in lifespan
+query_engine: QueryEngineSetup = None  # Will be initialized in lifespan
 
 
 @asynccontextmanager

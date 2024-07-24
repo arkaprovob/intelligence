@@ -172,6 +172,13 @@
         @keyframes blink {
             50% { opacity: 1; }
         }
+        .time-taken {
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -197,6 +204,7 @@
         const submitButton = document.querySelector('.sbmt');
 
         let isStreaming = false;
+        let startTime;
 
         function updateSubmitButtonState() {
             submitButton.disabled = !questionInput.value.trim() || isStreaming;
@@ -243,6 +251,7 @@
 
             window.eventSource = new EventSource(requestURL);
             let fullText = '';
+            startTime = Date.now();
 
             window.eventSource.onopen = function(event) {
                 console.log("Connection opened");
@@ -250,6 +259,10 @@
 
             window.eventSource.onmessage = function(event) {
                 const data = JSON.parse(event.data);
+
+                if (data.queued) {
+                    showPopupWarning("Your request is queued due to infrastructure limitations. Please wait.");
+                }
 
                 if (data.text) {
                     fullText += data.text;
@@ -264,6 +277,13 @@
                     window.eventSource.close();
                     isStreaming = false;
                     updateSubmitButtonState();
+
+                    if (data.time_taken) {
+                        showTimeTaken(data.time_taken);
+                    } else {
+                        const timeTaken = (Date.now() - startTime) / 1000;
+                        showTimeTaken(timeTaken.toFixed(2));
+                    }
                 }
             };
 
@@ -324,6 +344,15 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
+        function showTimeTaken(time) {
+            const chatHistory = document.getElementById('chat-history');
+            const timeElement = document.createElement('div');
+            timeElement.classList.add('time-taken');
+            timeElement.textContent = `Time taken: ${time} seconds`;
+            chatHistory.appendChild(timeElement);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const currentUrl = new URL(window.location.href);
             const qp = currentUrl.searchParams;
@@ -379,7 +408,5 @@
             }, 5000);
         }
     </script>
-
-
 </body>
 </html>
