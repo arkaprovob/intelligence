@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class Ingestion:
-    def __init__(self, llm: LLM, embedding: BaseEmbedding = None, transform: bool = False):
+    def __init__(self, llm: LLM = None, embedding: BaseEmbedding = None, transform: bool = False):
 
         self.config = self._load_configuration()
         self.embedding = self._get_embedding(embedding)
@@ -64,7 +64,7 @@ class Ingestion:
     def _load_extractors(self, transform: bool):
         # plays an important role in the extraction of the metadata from the nodes
         # 4. todo use a separate llm for these extractors with proper context
-        if not transform:
+        if not transform or self.llm is None:
             return []
         else:
             return [

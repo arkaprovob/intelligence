@@ -1,5 +1,6 @@
 import os
 import tempfile
+from contextlib import asynccontextmanager
 from typing import Optional
 
 from llama_index.core import SimpleDirectoryReader
@@ -12,7 +13,7 @@ from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from data_store_engine import DataStore
-from llmacpp import LlamaProvider
+from llmacpp import LlamaProvider, LLMPool
 from prompt import PromptProvider, completion_to_prompt
 from query_engine_setup import QueryEngineSetup
 from ingestion_engine import Ingestion
@@ -25,11 +26,18 @@ from utility import get_config_value
 import logging
 import json
 
-logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s '
-                           '[%(filename)s:%(lineno)d] %(message)s',
-                    datefmt='%Y-%m-%d:%H:%M:%S',
-                    level=logging.WARNING)
+import uvicorn
+
+# Configure the logging with a specific format
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Now use the logger
 logger = logging.getLogger(__name__)
+logger.info("Executing startup code")
 
 
 class Query(BaseModel):
@@ -59,18 +67,42 @@ notebook_login()
 model_url = get_config_value("MODEL_URL")
 
 prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
-llm = LlamaProvider(model_url, prompt_provider.get_system_prompt(), completion_to_prompt,
-                    prompt_provider.get_stopping_ids(), model_path=get_config_value("MODEL_PATH"))
 
-# store = DataStore(get_config_value("COLLECTION_NAME"))
+# llm = LlamaProvider(model_url, prompt_provider.get_system_prompt(), completion_to_prompt,
+#                     prompt_provider.get_stopping_ids(), model_path=get_config_value("MODEL_PATH"))
 
+llm_pool = LLMPool(
+    num_instances=4,
+    model_url=model_url,
+    system_prompt=prompt_provider.get_system_prompt(),
+    completion_to_prompt=completion_to_prompt,
+    stopping_ids=prompt_provider.get_stopping_ids(),
+    model_path=get_config_value("MODEL_PATH")
+)
 
 # todo check if this llm param can set in settings and use it from there instead of explicitly passing it
-ingestion = Ingestion(llm.get_llm())
+ingestion = None  # Will be initialized in lifespan
+query_engine = None  # Will be initialized in lifespan
 
-query_engine = QueryEngineSetup(llm.get_llm())
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Executing startup code")
+    # Startup
+    await llm_pool.initialize()
+    global ingestion, query_engine
+    # first_llm_instance = await llm_pool.get_instance()
+    try:
+        ingestion = Ingestion()
+        # query_engine = QueryEngineSetup(first_llm_instance.llm.get_llm())
+        yield
+    finally:
+        print("Executing cleanup code")
+        # if first_llm_instance:
+        #     await llm_pool.release_instance(first_llm_instance)
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins
@@ -99,16 +131,28 @@ async def stream(query: Query = Body(...)):
 
 
 @app.get('/query-stream/')
-async def stream(query: str = None, workstream: str = None):
+async def stream(query: str = None, workspace: str = None):
     if not query:
         return {"error": "Query parameter is required."}
-    if not workstream:
+    if not workspace:
         return {"error": "Collection name is required."}
 
-    ds = DataStore(workstream)
+    llm_instance = None
+    try:
+        # Acquire an LLM instance from the pool
+        llm_instance = await llm_pool.get_instance()
+        print(f"Using LLM instance: {llm_instance.id}")
 
-    return StreamingResponse(query_engine.generate_answer(query, ds.get_index()),
-                             media_type='text/event-stream')
+        # Ensure that the LLM instance is locked for the duration of the request
+        async with llm_instance.lock:
+            ds = DataStore(workspace)
+            query_engine_instance = QueryEngineSetup(llm_instance.llm.get_llm())
+            return StreamingResponse(query_engine_instance.generate_answer(query, ds.get_index()),
+                                     media_type='text/event-stream')
+    finally:
+        # Release the LLM instance back to the pool
+        if llm_instance:
+            await llm_pool.release_instance(llm_instance)
 
 
 @app.post("/docsbot-feedback")
@@ -175,3 +219,8 @@ async def get_collections(query: str = FQuery(...)):
         return collections
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", log_config=None, log_level="info")

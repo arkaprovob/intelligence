@@ -34,7 +34,7 @@ class QueryEngineSetup:
         if self.index is None:
             self.query_engine = None
         else:
-            self.query_engine = self._configure_query_engine()
+            self.query_engine: BaseQueryEngine = self._configure_query_engine()
 
     @classmethod
     def _load_configuration(cls) -> dict:

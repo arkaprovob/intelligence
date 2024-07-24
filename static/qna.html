@@ -232,7 +232,7 @@
             transformed_property = params.get('property').replace(/[\s\+]/g, '_').toLowerCase();
 
             // Construct the request URL with both query and property parameters
-            const requestURL = `http://localhost:8000/query-stream/?query=${encodedQuestion}&workstream=${transformed_property}`;
+            const requestURL = `http://localhost:8000/query-stream/?query=${encodedQuestion}&workspace=${transformed_property}`;
 
             if (window.eventSource) {
                 window.eventSource.close();

@@ -1,3 +1,7 @@
+import asyncio
+import uuid
+from typing import List
+
 from llama_index.llms.llama_cpp import LlamaCPP
 from utility import get_config_value
 
@@ -23,3 +27,56 @@ class LlamaProvider:
 
     def get_llm(self):
         return self.llm
+
+
+class LLMInstance:
+    def __init__(self, llm: LlamaProvider):
+        self.llm = llm
+        self.lock = asyncio.Lock()
+        self.id = str(uuid.uuid4())  # Unique ID for each instance
+
+
+class LLMPool:
+    def __init__(self, num_instances: int, model_url: str, system_prompt: str,
+                 completion_to_prompt, stopping_ids, model_path: str):
+        self.instances: List[LLMInstance] = []
+        self.semaphore = asyncio.Semaphore(num_instances)
+        self.lock = asyncio.Lock()
+        self.queue = asyncio.Queue()
+        self.model_url = model_url
+        self.system_prompt = system_prompt
+        self.completion_to_prompt = completion_to_prompt
+        self.stopping_ids = stopping_ids
+        self.model_path = model_path
+
+    async def initialize(self):
+        async with self.lock:
+            if not self.instances:
+                for _ in range(self.semaphore._value):
+                    llm = LlamaProvider(
+                        self.model_url,
+                        self.system_prompt,
+                        self.completion_to_prompt,
+                        self.stopping_ids,
+                        model_path=self.model_path
+                    )
+                    self.instances.append(LLMInstance(llm))
+
+    async def get_instance(self):
+        # acquires the semaphore, decrementing its counter. If the counter is zero, it waits until a release occurs
+        await self.semaphore.acquire()
+        async with self.lock:
+            if not self.instances:
+                # If no instances available, wait
+                future = asyncio.Future()
+                await self.queue.put(future)
+                await future
+            return self.instances.pop()
+
+    async def release_instance(self, instance: LLMInstance):
+        async with self.lock:
+            self.instances.append(instance)
+            self.semaphore.release()
+            if not self.queue.empty():
+                waiting_future = self.queue.get_nowait()
+                waiting_future.set_result(None)
