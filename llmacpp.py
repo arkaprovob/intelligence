@@ -63,15 +63,19 @@ class LLMPool:
                     self.instances.append(LLMInstance(llm))
 
     async def get_instance(self):
-        # acquires the semaphore, decrementing its counter. If the counter is zero, it waits until a release occurs
+        was_queued = False
+        if self.semaphore._value == 0:  # All instances are in use
+            was_queued = True
+            future = asyncio.Future()
+            await self.queue.put(future)
+            await future
+
         await self.semaphore.acquire()
         async with self.lock:
             if not self.instances:
-                # If no instances available, wait
-                future = asyncio.Future()
-                await self.queue.put(future)
-                await future
-            return self.instances.pop()
+                # This shouldn't happen, but let's handle it just in case
+                raise RuntimeError("No LLM instances available")
+            return self.instances.pop(), was_queued
 
     async def release_instance(self, instance: LLMInstance):
         async with self.lock:

@@ -1,9 +1,10 @@
+import asyncio
 import os
 import tempfile
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from llama_index.core import SimpleDirectoryReader
+from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.core import Settings
 from huggingface_hub import notebook_login
@@ -90,16 +91,12 @@ async def lifespan(app: FastAPI):
     logger.info("Executing startup code")
     # Startup
     await llm_pool.initialize()
-    global ingestion, query_engine
-    # first_llm_instance = await llm_pool.get_instance()
+    global query_engine
     try:
-        ingestion = Ingestion()
-        # query_engine = QueryEngineSetup(first_llm_instance.llm.get_llm())
+        query_engine = QueryEngineSetup(llm_pool)
         yield
     finally:
         print("Executing cleanup code")
-        # if first_llm_instance:
-        #     await llm_pool.release_instance(first_llm_instance)
 
 
 app = FastAPI(lifespan=lifespan)
@@ -137,22 +134,13 @@ async def stream(query: str = None, workspace: str = None):
     if not workspace:
         return {"error": "Collection name is required."}
 
-    llm_instance = None
     try:
-        # Acquire an LLM instance from the pool
-        llm_instance = await llm_pool.get_instance()
-        print(f"Using LLM instance: {llm_instance.id}")
-
-        # Ensure that the LLM instance is locked for the duration of the request
-        async with llm_instance.lock:
-            ds = DataStore(workspace)
-            query_engine_instance = QueryEngineSetup(llm_instance.llm.get_llm())
-            return StreamingResponse(query_engine_instance.generate_answer(query, ds.get_index()),
-                                     media_type='text/event-stream')
-    finally:
-        # Release the LLM instance back to the pool
-        if llm_instance:
-            await llm_pool.release_instance(llm_instance)
+        ds = DataStore(workspace)
+        return StreamingResponse(query_engine.generate_answer(query, ds.get_index()), # todo fix the intellisense issue
+                                 media_type='text/event-stream')
+    except Exception as e:
+        logging.error(f"Error in stream endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
 @app.post("/docsbot-feedback")

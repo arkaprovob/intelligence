@@ -1,4 +1,5 @@
-from typing import List, Generator
+import asyncio
+from typing import List, Generator, AsyncGenerator
 from llama_index.core.base.base_query_engine import BaseQueryEngine
 from llama_index.core.indices.vector_store import VectorIndexRetriever
 from llama_index.core.postprocessor import (
@@ -17,6 +18,7 @@ from utility import get_config_value
 import time
 import json
 import logging
+from llmacpp import LLMPool
 
 logging.basicConfig(
     format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -26,8 +28,8 @@ logging.basicConfig(
 
 
 class QueryEngineSetup:
-    def __init__(self, llm: LLM, index: VectorStoreIndex = None):
-        self.llm = llm
+    def __init__(self, llm_pool: LLMPool, index: VectorStoreIndex = None):
+        self.llm_pool = llm_pool
         self.index = index
         self.config = self._load_configuration()
         self.node_postprocessors = self._setup_node_postprocessors()
@@ -75,10 +77,14 @@ class QueryEngineSetup:
         print(f"the length of the node_postprocessors is {len(node_postprocessors)}")
         return node_postprocessors
 
-    def _configure_query_engine(self, vsi: VectorStoreIndex = None) -> BaseQueryEngine:
+    def _configure_query_engine(self, vsi: VectorStoreIndex = None, llm: LLM = None) -> BaseQueryEngine:
 
         if not (self.index or vsi):
             raise ValueError("Index is not provided")
+        if llm is None and self.llm is None:
+            raise ValueError("LLM is not provided")
+
+        lm = llm if llm else self.llm
 
         _index = vsi if vsi else self.index
 
@@ -91,7 +97,7 @@ class QueryEngineSetup:
             )
             response_synthesizer = get_response_synthesizer(
                 streaming=True,
-                llm=self.llm,
+                llm=lm,
                 use_async=self.config["ASYNC_INDEXING"],
                 verbose=True
             )
@@ -106,26 +112,45 @@ class QueryEngineSetup:
                 similarity_top_k=self.config["SIMILARITY_TOP_K"],
                 streaming=True,
                 node_postprocessors=self.node_postprocessors,
-                llm=self.llm,
+                llm=lm,
                 use_async=self.config["ASYNC_INDEXING"], # todo handle async indexing
             )
 
     # todo handle async indexing
-    def generate_answer(self, query: str, vsi: VectorStoreIndex = None) -> Generator[str, None, None]:
+    async def generate_answer(self, query: str, vsi: VectorStoreIndex = None) -> AsyncGenerator[str, None]:
         if vsi is not None:
-            _query_engine = self._configure_query_engine(vsi)
+            _index = vsi
+        elif self.index is not None:
+            _index = self.index
         else:
-            _query_engine = self.query_engine
+            raise ValueError("No valid index provided")
 
-        if _query_engine is None:
-            raise ValueError("Query engine is not initialized, please provide a valid index")
-
+        llm_instance = None
         try:
+            llm_instance, was_queued = await self.llm_pool.get_instance()
+
+            if was_queued:
+                yield f"data: {json.dumps({'queued': True})}\n\n"
+
+            _query_engine = self._configure_query_engine(_index, llm_instance.llm.get_llm())
+
             now = time.time()
             response = _query_engine.query(query)
-            for text in response.response_gen:
+            async for text in self._stream_response(response):
                 yield f"data: {json.dumps({'text': text})}\n\n"
             yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True})}\n\n"
         except Exception as e:
-            logging.error(f"Error processing query: {e}")
+            logging.error(f"Error processing query: {str(e)}")
             yield f"data: {json.dumps({'error': str(e), 'done': False})}\n\n"
+        finally:
+            if llm_instance:
+                await self.llm_pool.release_instance(llm_instance)
+
+    async def _stream_response(self, response):
+        try:
+            for text in response.response_gen:
+                yield text
+                await asyncio.sleep(0)  # Allow other coroutines to run
+        except Exception as e:
+            logging.error(f"Error streaming response: {str(e)}")
+            yield f"Error streaming response: {str(e)}"
