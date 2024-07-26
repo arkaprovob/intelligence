@@ -13,6 +13,7 @@ class LowercaseNodePostprocessor(BaseNodePostprocessor):
             query_bundle: Optional[QueryBundle] = None,
     ) -> List[NodeWithScore]:
         # convert all text to lowercase
+        print("in LowercaseNodePostprocessor ˆ_ˆ")
         for n in nodes:
             n.node.set_content(n.node.get_content().lower())
 

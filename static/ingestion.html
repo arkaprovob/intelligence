@@ -665,7 +665,7 @@
             const propertyParam = queryParams.get('property');
             if (propertyParam) {
                 const transformedPropertyParam = propertyParam.toLowerCase().replace(/\s+/g, '_');
-                collectionNameDisplay.textContent = transformedPropertyParam;
+                collectionNameDisplay.textContent = propertyParam;
                 collectionNameInput.value = transformedPropertyParam;
             }
 

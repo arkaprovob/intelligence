@@ -205,6 +205,7 @@
 
         let isStreaming = false;
         let startTime;
+        let queuedMessageElement = null;
 
         function updateSubmitButtonState() {
             submitButton.disabled = !questionInput.value.trim() || isStreaming;
@@ -259,30 +260,35 @@
 
             window.eventSource.onmessage = function(event) {
                 const data = JSON.parse(event.data);
-
-                if (data.queued) {
-                    showPopupWarning("Your request is queued due to infrastructure limitations. Please wait.");
-                }
-
-                if (data.text) {
-                    fullText += data.text;
-
-                    if (fullText.includes("Empty Response")) {
-                        fullText = "Sorry, I couldn't find an answer to your question. Please ask another question or rephrase the question";
-                    }
-                    updateBotMessage(fullText);
-                }
-                else if (data.done) {
-                    console.log("Stream ended");
-                    window.eventSource.close();
-                    isStreaming = false;
-                    updateSubmitButtonState();
-
-                    if (data.time_taken) {
-                        showTimeTaken(data.time_taken);
+                    if (data.queued) {
+                        showQueuedMessage();
                     } else {
-                        const timeTaken = (Date.now() - startTime) / 1000;
-                        showTimeTaken(timeTaken.toFixed(2));
+                    if (queuedMessageElement) {
+                        removeQueuedMessage();
+                    }
+                    if (data.text) {
+                        if (!startTime) {
+                            startTime = Date.now();
+                        }
+                        fullText += data.text;
+
+                        if (fullText.includes("Empty Response")) {
+                            fullText = "Sorry, I couldn't find an answer to your question. Please ask another question or rephrase the question";
+                        }
+                        updateBotMessage(fullText);
+                    }
+                    else if (data.done) {
+                        console.log("Stream ended");
+                        window.eventSource.close();
+                        isStreaming = false;
+                        updateSubmitButtonState();
+
+                        if (data.time_taken) {
+                            showTimeTaken(data.time_taken);
+                        } else {
+                            const timeTaken = (Date.now() - startTime) / 1000;
+                            showTimeTaken(timeTaken.toFixed(2));
+                        }
                     }
                 }
             };
@@ -298,6 +304,29 @@
                 updateSubmitButtonState();
             };
         });
+
+            function showQueuedMessage() {
+                if (!queuedMessageElement) {
+                    const chatHistory = document.getElementById('chat-history');
+                    queuedMessageElement = document.createElement('div');
+                    queuedMessageElement.classList.add('queued-message');
+                    queuedMessageElement.textContent = "Your request is queued due to no available LLM connection. It will be processed as soon as a connection becomes available.";
+                    queuedMessageElement.style.backgroundColor = '#FFF3CD';
+                    queuedMessageElement.style.color = '#856404';
+                    queuedMessageElement.style.padding = '10px';
+                    queuedMessageElement.style.borderRadius = '5px';
+                    queuedMessageElement.style.marginBottom = '10px';
+                    chatHistory.appendChild(queuedMessageElement);
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }
+            }
+
+        function removeQueuedMessage() {
+            if (queuedMessageElement) {
+                queuedMessageElement.remove();
+                queuedMessageElement = null;
+            }
+        }
 
         function addMessage(text, className) {
             const chatHistory = document.getElementById('chat-history');

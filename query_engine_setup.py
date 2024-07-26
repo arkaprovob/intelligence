@@ -13,6 +13,7 @@ from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.llms import LLM
 from llama_index.core.indices import VectorStoreIndex
 
+from custom_post_processor import LowercaseNodePostprocessor
 from utility import get_config_value
 
 import time
@@ -38,11 +39,11 @@ async def _stream_response(response):
 
 
 class QueryEngineSetup:
-    def __init__(self, llm_pool: LLMPool, index: VectorStoreIndex = None):
+    def __init__(self, llm_pool: LLMPool, index: VectorStoreIndex = None, include_lowercase_postprocessor: bool = True):
         self.llm_pool = llm_pool
         self.index = index
         self.config = self._load_configuration()
-        self.node_postprocessors = self._setup_node_postprocessors()
+        self.node_postprocessors = self._setup_node_postprocessors(include_lowercase_postprocessor)
         if self.index is None:
             self.query_engine = None
         else:
@@ -60,7 +61,7 @@ class QueryEngineSetup:
             "SIMILARITY_CUTOFF": get_config_value("SIMILARITY_CUTOFF"),
         }
 
-    def _setup_node_postprocessors(self) -> List:
+    def _setup_node_postprocessors(self, lowercase_postprocessor) -> List:
         metadata_replacement = MetadataReplacementPostProcessor(target_metadata_key="window")
         rerank = SentenceTransformerRerank(
             model=self.config["RERANKING_MODEL"],
@@ -83,6 +84,10 @@ class QueryEngineSetup:
         # add only rerank to the list
         else:
             node_postprocessors = [rerank, long_context_reorder]
+
+        if lowercase_postprocessor:
+            print("Adding LowercaseNodePostprocessor")
+            node_postprocessors.append(LowercaseNodePostprocessor())
 
         print(f"the length of the node_postprocessors is {len(node_postprocessors)}")
         return node_postprocessors
