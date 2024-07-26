@@ -3,11 +3,11 @@ import logging
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.extractors import TitleExtractor, QuestionsAnsweredExtractor, SummaryExtractor
-from llama_index.core.llms import LLM
 from llama_index.core.node_parser import SentenceWindowNodeParser, SentenceSplitter
 from llama_index.core.schema import MetadataMode
 
 from data_store_engine import DataStore
+from llmacpp import LLMPool
 from utility import get_config_value
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 
@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 class Ingestion:
-    def __init__(self, llm: LLM = None, embedding: BaseEmbedding = None, transform: bool = False):
+    def __init__(self, llm_pool: LLMPool = None, embedding: BaseEmbedding = None):
 
         self.config = self._load_configuration()
         self.embedding = self._get_embedding(embedding)
-        self.llm = llm
+        self.llm_pool = llm_pool
 
         #  1. todo add more parser and make them configurable, preferably through api
 
@@ -39,8 +39,6 @@ class Ingestion:
             chunk_size=self.config["CHUNK_SIZE"],
             chunk_overlap=self.config["CHUNK_OVERLAP"]
         )
-
-        self.extractors = self._load_extractors(transform)
 
     @classmethod
     def _load_configuration(cls) -> dict:
@@ -61,21 +59,36 @@ class Ingestion:
         return FastEmbedEmbedding(model_name=self.config["EMBEDDING_MODEL"],
                                   cache_dir=self.config["CACHE_DIR"])
 
-    def _load_extractors(self, transform: bool):
+    async def _load_extractors(self, transform: bool):
         # plays an important role in the extraction of the metadata from the nodes
         # 4. todo use a separate llm for these extractors with proper context
-        if not transform or self.llm is None:
-            return []
+        extractors = []
+        llm_instance = None
+        if not transform or self.llm_pool is None:
+            return extractors
         else:
-            return [
-                TitleExtractor(nodes=5, llm=self.llm),
-                SummaryExtractor(summaries=["prev", "self", "next"], llm=self.llm),
-                QuestionsAnsweredExtractor(questions=3, llm=self.llm,
-                                           metadata_mode=MetadataMode.EMBED),
-            ]
 
-    def ingest_documents(self, bucket: DataStore, documents, use_node_parser: bool = True,
-                         async_support: bool = False, show_progress: bool = True):
+            try:
+                llm_instance, was_queued = await self.llm_pool.get_instance()
+                if was_queued:
+                    print("No llm instance available, request queued")
+                extractors = [
+                    TitleExtractor(nodes=5, llm=llm_instance.llm.get_llm()),
+                    SummaryExtractor(summaries=["prev", "self", "next"], llm=llm_instance.llm.get_llm()),
+                    QuestionsAnsweredExtractor(questions=3, llm=llm_instance.llm.get_llm(),
+                                               metadata_mode=MetadataMode.EMBED),
+                ]
+
+            except Exception as e:
+                logging.error(f"Error processing query: {str(e)}")
+                logger.error(f"Error loading extractors: {str(e)}")
+            finally:
+                if llm_instance:
+                    await self.llm_pool.release_instance(llm_instance)
+                return extractors
+
+    async def ingest_documents(self, bucket: DataStore, documents, use_node_parser: bool = True,
+                               async_support: bool = False, show_progress: bool = True, transform: bool = False):
         if use_node_parser:
             logger.info("Using node parser")
             print("Using node parser")
@@ -85,12 +98,14 @@ class Ingestion:
             print("Using documents")
             # Settings.text_splitter = self.text_splitter
             nodes = self.text_splitter.get_nodes_from_documents(documents)
+
+        # Await the extractors
+        extractors = await self._load_extractors(transform=transform)
+
         return VectorStoreIndex(  # This returns an index after ingesting the documents
             nodes=nodes,
             storage_context=bucket.get_storage_context(),
             embed_model=self.embedding,
-            transformations=self.extractors,
+            transformations=extractors,
             use_async=async_support,  # 5. todo fix the async_support during ingestion
             show_progress=show_progress)
-
-

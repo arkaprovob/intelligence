@@ -77,7 +77,7 @@ llm_pool = LLMPool(
 )
 
 # todo check if this llm param can set in settings and use it from there instead of explicitly passing it
-ingestion: Ingestion = None  # Will be initialized in lifespan
+ingestion_engine: Ingestion = None  # Will be initialized in lifespan
 query_engine: QueryEngineSetup = None  # Will be initialized in lifespan
 
 
@@ -87,8 +87,10 @@ async def lifespan(app: FastAPI):
     # Startup
     await llm_pool.initialize()
     global query_engine
+    global ingestion_engine
     try:
         query_engine = QueryEngineSetup(llm_pool)
+        ingestion_engine = Ingestion(llm_pool=llm_pool)
         yield
     finally:
         print("Executing cleanup code")
@@ -131,7 +133,7 @@ async def stream(query: str = None, workspace: str = None):
 
     try:
         ds = DataStore(workspace)
-        return StreamingResponse(query_engine.generate_answer(query, ds.get_index()), # todo fix the intellisense issue
+        return StreamingResponse(query_engine.generate_answer(query, ds.get_index()),  # todo fix the intellisense issue
                                  media_type='text/event-stream')
     except Exception as e:
         logging.error(f"Error in stream endpoint: {str(e)}")
@@ -180,7 +182,7 @@ async def ingest_documents(
                     print("Error: Metadata is not a valid JSON string.")
 
         # Perform ingestion
-        ingestion.ingest_documents(
+        await ingestion_engine.ingest_documents(
             documents=docs,
             use_node_parser=use_node_parser,
             async_support=async_support,
@@ -206,4 +208,5 @@ async def get_collections(query: str = FQuery(...)):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", log_config=None, log_level="info")
