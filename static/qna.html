@@ -179,6 +179,9 @@
             margin-top: 10px;
             font-style: italic;
         }
+        .cached-message {
+            background-color: #e6ffe6; /* Light green background for cached responses */
+        }
     </style>
 </head>
 <body>
@@ -289,6 +292,31 @@
                             const timeTaken = (Date.now() - startTime) / 1000;
                             showTimeTaken(timeTaken.toFixed(2));
                         }
+                        if (data.source === 'llm') {
+                            // post the response to /cache endpoint to store the response in the cache, and if anything goes wrong, show a warning popup
+                            fetch('http://localhost:8000/cache/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    question: question,
+                                    response: fullText,
+                                    workspace: transformed_property
+                                })
+                            }).then(response => {
+                                if (!response.ok) {
+                                    showPopupWarning('Error: Failed to store response in cache.');
+                                }
+                                console.log('Response cached successfully');
+                            }).catch(error => {
+                                console.error('Failed to store response in cache:', error);
+                                showPopupWarning('Error: Failed to store response in cache.');
+                            });
+                        } else {
+                            console.log('This response came from the cache', 'bot-message');
+                    }
+
                     }
                 }
             };

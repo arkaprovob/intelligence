@@ -153,7 +153,7 @@ class QueryEngineSetup:
             response = _query_engine.query(query)
             async for text in _stream_response(response):
                 yield f"data: {json.dumps({'text': text})}\n\n"
-            yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True})}\n\n"
+            yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True, 'source':'llm'})}\n\n"
         except Exception as e:
             logging.error(f"Error processing query: {str(e)}")
             yield f"data: {json.dumps({'error': str(e), 'done': False})}\n\n"

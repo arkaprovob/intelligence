@@ -1,4 +1,3 @@
-import asyncio
 import os
 import tempfile
 from contextlib import asynccontextmanager
@@ -13,6 +12,7 @@ from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query 
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
+from cache.cache_ops import RedisCache
 from data_store_engine import DataStore
 from llmacpp import LLMPool
 from prompt import PromptProvider, completion_to_prompt
@@ -51,8 +51,17 @@ class FeedbackRequest(BaseModel):
     UserQuestion: str
 
 
+class CacheRecord(BaseModel):
+    question: str
+    response: str
+    metadata: Optional[dict] = None
+    workspace: str
+
+
 cert_file = get_config_value("SSL_CERT_PATH")
 key_file = get_config_value("SSL_KEY_PATH")
+no_of_llm_instances = get_config_value("NO_OF_LLM_INSTANCES")
+print(f"no_of_llm_instances : {no_of_llm_instances}")
 
 db = get_config_value("TINY_DB_PATH")
 
@@ -68,7 +77,7 @@ model_url = get_config_value("MODEL_URL")
 prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
 
 llm_pool = LLMPool(
-    num_instances=1,
+    num_instances=no_of_llm_instances,
     model_url=model_url,
     system_prompt=prompt_provider.get_system_prompt(),
     completion_to_prompt=completion_to_prompt,
@@ -132,12 +141,29 @@ async def stream(query: str = None, workspace: str = None):
         return {"error": "Collection name is required."}
 
     try:
+        cache_result = await RedisCache(
+            name=workspace, prefix="{}-{}".format("db", workspace)
+        ).find_similar(query)
+
+        if cache_result is not None:
+            # return cached result instead of querying the lm
+            return StreamingResponse(cache_result, media_type='text/event-stream')
+
         ds = DataStore(workspace)
         return StreamingResponse(query_engine.generate_answer(query, ds.get_index()),  # todo fix the intellisense issue
                                  media_type='text/event-stream')
     except Exception as e:
         logging.error(f"Error in stream endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+@app.post('/cache')
+async def insert_into_redis_cache(cache_record: CacheRecord):
+    try:
+        cache = RedisCache(name=cache_record.workspace, prefix="{}-{}".format("db", cache_record.workspace))
+        cache.store(cache_record.question, cache_record.response, cache_record.metadata)
+    except Exception as e:
+        logging.error(f"Error inserting into cache: {str(e)}")
 
 
 @app.post("/docsbot-feedback")

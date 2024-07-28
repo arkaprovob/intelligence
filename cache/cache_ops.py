@@ -1,3 +1,5 @@
+import asyncio
+import json
 from typing import Optional
 from redisvl.extensions.llmcache import SemanticCache
 import time
@@ -38,12 +40,12 @@ class RedisCache:
             self.name = name
             self.prefix = prefix
             self._cache = SemanticCache(
-                name=name, # underlying search index name
-                prefix=prefix, # redis key prefix for hash entries
-                redis_url=redis_url, # redis connection url string
-                distance_threshold=distance_threshold # semantic cache distance threshold
+                name=name,  # underlying search index name
+                prefix=prefix,  # redis key prefix for hash entries
+                redis_url=redis_url,  # redis connection url string
+                distance_threshold=distance_threshold  # semantic cache distance threshold
             )
-            self.set_time_to_live()
+            # self.set_time_to_live()
             self._last_activity = time.time()
             self._timer = threading.Timer(7200, self._destroy_if_idle)
             self._timer.start()
@@ -70,15 +72,30 @@ class RedisCache:
         self._reset_timer()
         self.cache.store(prompt=question, response=response, metadata=metadata)
 
-    def find_similar(self, question: str, return_fields=None):
-        self._reset_timer()
+    async def find_similar(self, question: str, return_fields=None):
         if return_fields is None:
             return_fields = ["prompt", "response", "metadata"]
+        start_time = time.time()
         response = self.cache.check(prompt=question, return_fields=return_fields)
+        end_time = time.time()
+        time_taken = end_time - start_time
         if not response:
             return None
-        print(f"length of response is : {len(response)}")
-        return response[0]["response"]
+
+        cached_response = response[0]["response"]
+
+        async def stream_cached_response():
+            # simulate streaming for cached response
+            words = cached_response.split()
+            for word in words:
+                send_as = word + " "
+                yield f"data: {json.dumps({'text': send_as})}\n\n"
+                await asyncio.sleep(0.001)  # simulate delay between chunks
+
+            # Send the done message
+            yield f"data: {json.dumps({'time_taken': time_taken, 'done': True, 'source':'cache'})}\n\n"
+
+        return stream_cached_response()
 
     def override_cache_threshold(self, threshold):
         self._reset_timer()

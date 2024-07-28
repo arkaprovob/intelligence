@@ -26,3 +26,4 @@ huggingface-hub~=0.20.3
 pydantic~=2.7.4
 starlette~=0.37.2
 torch~=2.5.0.dev20240620
+redisvl
