@@ -23,10 +23,11 @@ class RedisCache:
     _instances = {}
     _lock = threading.Lock()
 
-    def __new__(cls, name: str = "docsbot_cache", prefix: str = "docsbot_cache", *args, **kwargs):
+    def __new__(cls, name: str = "common_cache", prefix: str = "docsbot", *args, **kwargs):
         key = (name, prefix)
         with cls._lock:
             if key not in cls._instances:
+                print(f"Creating new cache instance for {name} with prefix {prefix}")
                 instance = super(RedisCache, cls).__new__(cls)
                 cls._instances[key] = instance
             return cls._instances[key]
@@ -34,14 +35,14 @@ class RedisCache:
     def __init__(self, name: str = "docsbot_cache", prefix: str = "docsbot_cache",
                  redis_url: str = "redis://localhost:6379", distance_threshold=0.2):
         if not hasattr(self, '_initialized'):
-            self._cache = SemanticCache(
-                name=name,
-                prefix=prefix,
-                redis_url=redis_url,
-                distance_threshold=distance_threshold
-            )
             self.name = name
             self.prefix = prefix
+            self._cache = SemanticCache(
+                name=name, # underlying search index name
+                prefix=prefix, # redis key prefix for hash entries
+                redis_url=redis_url, # redis connection url string
+                distance_threshold=distance_threshold # semantic cache distance threshold
+            )
             self.set_time_to_live()
             self._last_activity = time.time()
             self._timer = threading.Timer(7200, self._destroy_if_idle)
