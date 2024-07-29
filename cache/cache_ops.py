@@ -5,6 +5,8 @@ from redisvl.extensions.llmcache import SemanticCache
 import time
 import threading
 
+from redisvl.utils.vectorize import HFTextVectorizer
+
 
 class RedisCache:
     """
@@ -35,15 +37,23 @@ class RedisCache:
             return cls._instances[key]
 
     def __init__(self, name: str = "docsbot_cache", prefix: str = "docsbot_cache",
-                 redis_url: str = "redis://localhost:6379", distance_threshold=0.2):
+                 redis_url: str = "redis://localhost:6379", distance_threshold=0.06, vectorizer=None):
+        # need to be strict about the value of distance_threshold specially
+        # when using BAAI/bge-large-en it's a powerful model hence the threshold should be low,
+        # compared to the efault model
         if not hasattr(self, '_initialized'):
             self.name = name
             self.prefix = prefix
+
+            if vectorizer is None:
+                vectorizer = HFTextVectorizer(model="BAAI/bge-large-en")
+
             self._cache = SemanticCache(
                 name=name,  # underlying search index name
                 prefix=prefix,  # redis key prefix for hash entries
                 redis_url=redis_url,  # redis connection url string
-                distance_threshold=distance_threshold  # semantic cache distance threshold
+                distance_threshold=distance_threshold,  # semantic cache distance threshold
+                vectorizer=vectorizer
             )
             # self.set_time_to_live()
             self._last_activity = time.time()
