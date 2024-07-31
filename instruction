@@ -1,5 +1,5 @@
 # for cpu
-pip install llama-cpp-python
+pip install llama-cpp-python or pip install --upgrade llama-cpp-python
 
 # for gpu with cuda
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir

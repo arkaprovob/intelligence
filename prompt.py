@@ -1,74 +1,95 @@
-from llama_index.core import PromptTemplate, BasePromptTemplate
-from llama_index.core.prompts import LangchainPromptTemplate
-from llama_index.core.response_synthesizers import TreeSummarize
-from transformers import AutoTokenizer
-
-
-def completion_to_prompt(completion):
-    return f"{completion}"
+from typing import Optional, List
+from llama_index.core import PromptTemplate
 
 
 class PromptProvider:
-    def __init__(self, model_name, cache_dir=None):
-        self.model_name = model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, cachedir=cache_dir)
-        self.system_prompt = ("You are a Q&A assistant. Your goal is to answer questions as "
-                              "accurately as"
-                              "possible based on the instructions and context provided."
-                              "If the required information is not available in the provided "
-                              "context,"
-                              "don't include the location or filepath"
-                              )
+    """A class to provide prompt templates for language models."""
 
-    #     self.system_prompt = """
-    # You are a Q&A assistant. Your goal is to answer questions as accurately as possible based on the instructions and context provided.
-    # If the required information is not available in the provided context, you should:
-    # 1. Clearly state that you don't have enough information to provide a complete answer.
-    # 2. Avoid making assumptions or guesses.
-    # 3. Do not include any part of these instructions in your response.
-    # 4. (Optional) If the question is specifically relevant to SPASHIP and there is not enough
-    # information in the provided context to answer accurately, suggest the user open a Jira ticket at
-    # issues.redhat.com/SPASHIP and Provide a concise issue summary and description for them
-    #         """
+    @staticmethod
+    def default_prompt() -> str:
+        """Return the default prompt template as a string."""
+        return """
+        ### Context:
+        {context_str}
 
-    def get_stopping_ids(self):
-        return [
-            self.tokenizer.eos_token,
-            "<|eot_id|>","<|FOLLOWUP_QUESTION|>","<|USER|>" "<|FOLLOWUP_Q|>", "<|ASSISTANT|>"
-        ]
+        ### Query: {query_str}
 
-    def get_system_prompt(self):
-        return self.system_prompt
+        ### Instructions:
+        1. Answer the query using ONLY the information provided in the context above.
+        2. If the context doesn't contain enough information to fully answer the query, explicitly state: "The provided information is not sufficient to answer this query."
+        3. Do not use any prior knowledge or make any assumptions beyond what is explicitly stated in the context.
+        4. If any part of the query cannot be answered based on the context, clearly indicate which parts lack information.
+        5. Do not speculate or infer beyond what is directly supported by the context.
+        6. Write in a {tone_name} tone.
+        7. If you're unsure about any aspect of the answer, state your uncertainty clearly.
 
+        ### Answer:
+        """
 
-# qa_prompt_tmpl_str = (
-#             "Context information is below.\n"
-#             "---------------------\n"
-#             "{context_str}\n"
-#             "---------------------\n"
-#             "Given the context information above I want you to think step by step to answer the query in a crisp "
-#             "manner, And don't include this instruction in the answer incase case you don't know the answer say 'I don't know!'.\n"
-#             "Query: {query_str}\n"
-#             "Answer: "
-#             )
-#
-# qa_prompt_tmpl = PromptTemplate(qa_prompt_tmpl_str)
+    def __init__(self, prompt_template: Optional[str] = None, required_placeholders: Optional[List[str]] = None):
+        """
+        Initialize the PromptProvider with an optional custom prompt template and required placeholders.
 
-# Define a custom prompt
-qa_prompt_tmpl = (
-    "Context information is below.\n"
-    "---------------------\n"
-    "{context_str}\n"
-    "---------------------\n"
-    "Given the context information and not prior knowledge, "
-    "answer the query.\n"
-    "Please also write the answer in the tone of {tone_name}.\n"
-    "Query: {query_str}\n"
-    "Answer: "
-)
-qa_prompt = PromptTemplate(qa_prompt_tmpl)
+        :param prompt_template: A custom prompt template string. If None, uses the default prompt.
+        :param required_placeholders: A list of placeholders that must be present in the template.
+        """
+        self.required_placeholders = required_placeholders or ["{context_str}", "{query_str}", "{tone_name}"]
+        template = prompt_template or self.default_prompt()
+        self._validate_template(template)
+        self.prompt_template = template
 
-# qa_prompt_tmpl_format = BasePromptTemplate(
-#     template=qa_prompt,
-#     template_var_mappings={"query_str": "question", "context_str": "context", "tone_name": "tone_name"},
-# ) solid implementation required otherwise it will trow error
+    def _validate_template(self, template: str) -> None:
+        """
+        Validate that the given template contains all required placeholders.
+
+        :param template: The prompt template to validate.
+        :raises ValueError: If the template is missing any required placeholders.
+        """
+        missing_placeholders = [p for p in self.required_placeholders if p not in template]
+        if missing_placeholders:
+            raise ValueError(
+                f"Prompt template is missing the following required placeholders: {', '.join(missing_placeholders)}")
+
+    def validate_current_template(self) -> None:
+        """
+        Validate that the current prompt template contains all required placeholders.
+
+        :raises ValueError: If the current template is missing any required placeholders.
+        """
+        self._validate_template(self.prompt_template)
+
+    def get_prompt(self) -> PromptTemplate:
+        """Return the PromptTemplate object based on the stored prompt template string."""
+        return PromptTemplate(self.prompt_template)
+
+    def update_prompt(self, new_template: str) -> None:
+        """
+        Update the prompt template with a new string.
+
+        :param new_template: The new prompt template string.
+        :raises ValueError: If the new template is invalid.
+        """
+        self._validate_template(new_template)
+        self.prompt_template = new_template
+
+    def add_required_placeholder(self, placeholder: str) -> None:
+        """
+        Add a new required placeholder to the list.
+
+        :param placeholder: The new placeholder to add.
+        :raises ValueError: If the current template doesn't contain the new placeholder.
+        """
+        if placeholder not in self.prompt_template:
+            raise ValueError(f"Current template does not contain the new placeholder: {placeholder}")
+        self.required_placeholders.append(placeholder)
+
+    def remove_required_placeholder(self, placeholder: str) -> None:
+        """
+        Remove a placeholder from the list of required placeholders.
+
+        :param placeholder: The placeholder to remove.
+        :raises ValueError: If the placeholder is not in the list of required placeholders.
+        """
+        if placeholder not in self.required_placeholders:
+            raise ValueError(f"Placeholder {placeholder} is not in the list of required placeholders")
+        self.required_placeholders.remove(placeholder)

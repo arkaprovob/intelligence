@@ -134,20 +134,21 @@ async def stream(query: Query = Body(...)):
 
 
 @app.get('/query-stream/')
-async def stream(query: str = None, workspace: str = None):
+async def stream(query: str = None, workspace: str = "spaship_docs", nocache: int = 1):
     if not query:
         return {"error": "Query parameter is required."}
     if not workspace:
         return {"error": "Collection name is required."}
 
     try:
-        # cache_result = await RedisCache(
-        #     name=workspace, prefix="{}-{}".format("db", workspace)
-        # ).find_similar(query)
-        #
-        # if cache_result is not None:
-        #     # return cached result instead of querying the lm
-        #     return StreamingResponse(cache_result, media_type='text/event-stream')
+        if nocache == 0:
+            cache_result = await RedisCache(
+                name=workspace, prefix="{}-{}".format("db", workspace)
+            ).find_similar(query)
+
+            if cache_result is not None:
+                # return cached result instead of querying the lm
+                return StreamingResponse(cache_result, media_type='text/event-stream')
 
         ds = DataStore(workspace)
         return StreamingResponse(query_engine.generate_answer(query, ds.get_index()),  # todo fix the intellisense issue

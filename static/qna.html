@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q&A</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -182,6 +183,18 @@
         .cached-message {
             background-color: #e6ffe6; /* Light green background for cached responses */
         }
+       .bot-message pre {
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .bot-message code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #e0e0e0;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body>
@@ -192,7 +205,7 @@
 
     <div class="content-wrapper">
         <div class="container">
-            <h2><span id="interacting-with">Chat with </span><span id="property-value"></span></h2>
+            <h2><span id="interacting-with">Workspace </span><span id="property-value"></span></h2>
             <div id="chat-history"></div>
             <form id="questionForm">
                 <input type="text" id="questionInput" class="questionInput" placeholder="Enter your question here">
@@ -397,7 +410,8 @@
                 chatHistory.appendChild(botMessage);
             }
 
-            botMessage.textContent = text;
+            // Use marked to parse Markdown
+            botMessage.innerHTML = marked.parse(text);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 

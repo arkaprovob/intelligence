@@ -14,7 +14,7 @@ from llama_index.core.llms import LLM
 from llama_index.core.indices import VectorStoreIndex
 
 from custom_post_processor import LowercaseNodePostprocessor
-from prompt import qa_prompt, qa_prompt_tmpl
+from prompt import PromptProvider
 
 from utility import get_config_value
 
@@ -120,8 +120,9 @@ class QueryEngineSetup:
                 use_async=self.config["ASYNC_INDEXING"],
                 verbose=True,
                 response_mode=ResponseMode.SIMPLE_SUMMARIZE
-            )
-            summarizer = SimpleSummarize(text_qa_template=qa_prompt, llm=lm, streaming=True) # instead of get_response_synthesizer alternative approach to use more customization
+            ) # One can either use response_mode or customize that specific template
+            summarizer = SimpleSummarize(text_qa_template=PromptProvider().get_prompt(), llm=lm, streaming=True)
+            # instead of get_response_synthesizer alternative approach to use more customization
             return RetrieverQueryEngine(
                 retriever=retriever,
                 response_synthesizer=summarizer,
@@ -154,7 +155,9 @@ class QueryEngineSetup:
                 yield f"data: {json.dumps({'queued': True})}\n\n"
 
             _query_engine = self._configure_query_engine(_index, llm_instance.llm.get_llm())
-            _query_engine.update_prompts({"response_synthesizer:text_qa_template": qa_prompt.partial_format(tone_name="product manager")}) # finally customizing as in adding extra parameter
+            _query_engine.update_prompts({
+                "response_synthesizer:text_qa_template": qa_prompt
+                .partial_format(tone_name="senior support engineer")})
 
             print(_query_engine.get_prompts())
             now = time.time()
