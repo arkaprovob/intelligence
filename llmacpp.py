@@ -20,8 +20,8 @@ class LlamaProvider:
             context_window=get_config_value("LLM_CONTEXT_WINDOW"),
             generate_kwargs={"stop": stopping_ids},
             model_kwargs={"n_gpu_layers": get_config_value("GPU_LAYER")},
-            system_prompt=system_prompt,
-            completion_to_prompt=completion_to_prompt,
+            # system_prompt=system_prompt,
+            # completion_to_prompt=completion_to_prompt,
             verbose=True
         )
 

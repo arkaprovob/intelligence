@@ -141,13 +141,13 @@ async def stream(query: str = None, workspace: str = None):
         return {"error": "Collection name is required."}
 
     try:
-        cache_result = await RedisCache(
-            name=workspace, prefix="{}-{}".format("db", workspace)
-        ).find_similar(query)
-
-        if cache_result is not None:
-            # return cached result instead of querying the lm
-            return StreamingResponse(cache_result, media_type='text/event-stream')
+        # cache_result = await RedisCache(
+        #     name=workspace, prefix="{}-{}".format("db", workspace)
+        # ).find_similar(query)
+        #
+        # if cache_result is not None:
+        #     # return cached result instead of querying the lm
+        #     return StreamingResponse(cache_result, media_type='text/event-stream')
 
         ds = DataStore(workspace)
         return StreamingResponse(query_engine.generate_answer(query, ds.get_index()),  # todo fix the intellisense issue

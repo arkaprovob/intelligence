@@ -1,8 +1,11 @@
+from llama_index.core import PromptTemplate, BasePromptTemplate
+from llama_index.core.prompts import LangchainPromptTemplate
+from llama_index.core.response_synthesizers import TreeSummarize
 from transformers import AutoTokenizer
 
 
 def completion_to_prompt(completion):
-    return f"<|USER|>{completion}<|ASSISTANT|>"
+    return f"{completion}"
 
 
 class PromptProvider:
@@ -14,9 +17,7 @@ class PromptProvider:
                               "possible based on the instructions and context provided."
                               "If the required information is not available in the provided "
                               "context,"
-                              "you should inform the user at the end of your response that they "
-                              "can open a jira ticket in issues.redhat.com/SPASHIP and provide "
-                              "them the issue summary and description"
+                              "don't include the location or filepath"
                               )
 
     #     self.system_prompt = """
@@ -33,8 +34,41 @@ class PromptProvider:
     def get_stopping_ids(self):
         return [
             self.tokenizer.eos_token,
-            "<|eot_id|>",
+            "<|eot_id|>","<|FOLLOWUP_QUESTION|>","<|USER|>" "<|FOLLOWUP_Q|>", "<|ASSISTANT|>"
         ]
 
     def get_system_prompt(self):
         return self.system_prompt
+
+
+# qa_prompt_tmpl_str = (
+#             "Context information is below.\n"
+#             "---------------------\n"
+#             "{context_str}\n"
+#             "---------------------\n"
+#             "Given the context information above I want you to think step by step to answer the query in a crisp "
+#             "manner, And don't include this instruction in the answer incase case you don't know the answer say 'I don't know!'.\n"
+#             "Query: {query_str}\n"
+#             "Answer: "
+#             )
+#
+# qa_prompt_tmpl = PromptTemplate(qa_prompt_tmpl_str)
+
+# Define a custom prompt
+qa_prompt_tmpl = (
+    "Context information is below.\n"
+    "---------------------\n"
+    "{context_str}\n"
+    "---------------------\n"
+    "Given the context information and not prior knowledge, "
+    "answer the query.\n"
+    "Please also write the answer in the tone of {tone_name}.\n"
+    "Query: {query_str}\n"
+    "Answer: "
+)
+qa_prompt = PromptTemplate(qa_prompt_tmpl)
+
+# qa_prompt_tmpl_format = BasePromptTemplate(
+#     template=qa_prompt,
+#     template_var_mappings={"query_str": "question", "context_str": "context", "tone_name": "tone_name"},
+# ) solid implementation required otherwise it will trow error

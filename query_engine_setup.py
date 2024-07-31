@@ -14,7 +14,11 @@ from llama_index.core.llms import LLM
 from llama_index.core.indices import VectorStoreIndex
 
 from custom_post_processor import LowercaseNodePostprocessor
+from prompt import qa_prompt, qa_prompt_tmpl
+
 from utility import get_config_value
+
+from llama_index.core.response_synthesizers import Generation, ResponseMode, TreeSummarize, SimpleSummarize
 
 import time
 import json
@@ -96,10 +100,10 @@ class QueryEngineSetup:
 
         if not (self.index or vsi):
             raise ValueError("Index is not provided")
-        if llm is None and self.llm is None:
+        if llm is None:
             raise ValueError("LLM is not provided")
 
-        lm = llm if llm else self.llm
+        lm = llm if llm else None
 
         _index = vsi if vsi else self.index
 
@@ -114,11 +118,13 @@ class QueryEngineSetup:
                 streaming=True,
                 llm=lm,
                 use_async=self.config["ASYNC_INDEXING"],
-                verbose=True
+                verbose=True,
+                response_mode=ResponseMode.SIMPLE_SUMMARIZE
             )
+            summarizer = SimpleSummarize(text_qa_template=qa_prompt, llm=lm, streaming=True) # instead of get_response_synthesizer alternative approach to use more customization
             return RetrieverQueryEngine(
                 retriever=retriever,
-                response_synthesizer=response_synthesizer,
+                response_synthesizer=summarizer,
                 node_postprocessors=self.node_postprocessors,
             )
         else:
@@ -128,7 +134,7 @@ class QueryEngineSetup:
                 streaming=True,
                 node_postprocessors=self.node_postprocessors,
                 llm=lm,
-                use_async=self.config["ASYNC_INDEXING"], # todo handle async indexing
+                use_async=self.config["ASYNC_INDEXING"],  # todo handle async indexing
             )
 
     # todo handle async indexing
@@ -148,16 +154,17 @@ class QueryEngineSetup:
                 yield f"data: {json.dumps({'queued': True})}\n\n"
 
             _query_engine = self._configure_query_engine(_index, llm_instance.llm.get_llm())
+            _query_engine.update_prompts({"response_synthesizer:text_qa_template": qa_prompt.partial_format(tone_name="product manager")}) # finally customizing as in adding extra parameter
 
+            print(_query_engine.get_prompts())
             now = time.time()
             response = _query_engine.query(query)
             async for text in _stream_response(response):
                 yield f"data: {json.dumps({'text': text})}\n\n"
-            yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True, 'source':'llm'})}\n\n"
+            yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True, 'source': 'llm'})}\n\n"
         except Exception as e:
             logging.error(f"Error processing query: {str(e)}")
             yield f"data: {json.dumps({'error': str(e), 'done': False})}\n\n"
         finally:
             if llm_instance:
                 await self.llm_pool.release_instance(llm_instance)
-
