@@ -7,10 +7,14 @@ from utility import get_config_value
 
 
 class LlamaProvider:
-    def __init__(self, model_url, system_prompt, completion_to_prompt, stopping_ids,
+    def __init__(self, model_url, stopping_ids, system_prompt=None, completion_to_prompt=None,
                  model_path=None):
         if model_path is not None:
             model_url = None
+
+        gkw = None
+        if stopping_ids is not None:
+            gkw = {"stop": stopping_ids}
 
         self.llm = LlamaCPP(
             model_url=model_url,
@@ -18,10 +22,10 @@ class LlamaProvider:
             temperature=get_config_value("LLM_TEMPERATURE"),
             max_new_tokens=get_config_value("LLM_MAX_TOKEN_GENERATION"),
             context_window=get_config_value("LLM_CONTEXT_WINDOW"),
-            generate_kwargs={"stop": stopping_ids},
+            generate_kwargs=gkw,
             model_kwargs={"n_gpu_layers": get_config_value("GPU_LAYER")},
-            # system_prompt=system_prompt,
-            # completion_to_prompt=completion_to_prompt,
+            system_prompt=system_prompt,
+            completion_to_prompt=completion_to_prompt,
             verbose=True
         )
 
@@ -37,8 +41,8 @@ class LLMInstance:
 
 
 class LLMPool:
-    def __init__(self, num_instances: int, model_url: str, system_prompt: str,
-                 completion_to_prompt, stopping_ids, model_path: str):
+    def __init__(self, num_instances: int, model_url: str, model_path: str, system_prompt: str = None,
+                 completion_to_prompt=None, stopping_ids=None):
         self.instances: List[LLMInstance] = []
         self.semaphore = asyncio.Semaphore(num_instances)
         self.lock = asyncio.Lock()

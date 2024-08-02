@@ -15,7 +15,7 @@ from starlette.middleware.cors import CORSMiddleware
 from cache.cache_ops import RedisCache
 from data_store_engine import DataStore
 from llmacpp import LLMPool
-from prompt import PromptProvider, completion_to_prompt
+from prompt import PromptProvider
 from query_engine_setup import QueryEngineSetup
 from ingestion_engine import Ingestion
 from fastapi.staticfiles import StaticFiles
@@ -74,14 +74,11 @@ model_name = get_config_value("INFERENCING_MODEL")
 notebook_login()
 model_url = get_config_value("MODEL_URL")
 
-prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
+#prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
 
 llm_pool = LLMPool(
     num_instances=no_of_llm_instances,
     model_url=model_url,
-    system_prompt=prompt_provider.get_system_prompt(),
-    completion_to_prompt=completion_to_prompt,
-    stopping_ids=prompt_provider.get_stopping_ids(),
     model_path=get_config_value("MODEL_PATH")
 )
 

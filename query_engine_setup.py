@@ -18,7 +18,8 @@ from prompt import PromptProvider
 
 from utility import get_config_value
 
-from llama_index.core.response_synthesizers import Generation, ResponseMode, TreeSummarize, SimpleSummarize
+from llama_index.core.response_synthesizers import Generation, ResponseMode, TreeSummarize, SimpleSummarize, \
+    BaseSynthesizer
 
 import time
 import json
@@ -114,18 +115,19 @@ class QueryEngineSetup:
                 similarity_top_k=self.config["SIMILARITY_TOP_K"],
                 verbose=True
             )
-            response_synthesizer = get_response_synthesizer(
+            response_synthesizer: BaseSynthesizer = get_response_synthesizer(
                 streaming=True,
                 llm=lm,
                 use_async=self.config["ASYNC_INDEXING"],
                 verbose=True,
-                response_mode=ResponseMode.SIMPLE_SUMMARIZE
+                response_mode=ResponseMode.COMPACT,
+                text_qa_template=PromptProvider().get_prompt()
             ) # One can either use response_mode or customize that specific template
             summarizer = SimpleSummarize(text_qa_template=PromptProvider().get_prompt(), llm=lm, streaming=True)
             # instead of get_response_synthesizer alternative approach to use more customization
             return RetrieverQueryEngine(
                 retriever=retriever,
-                response_synthesizer=summarizer,
+                response_synthesizer=response_synthesizer,
                 node_postprocessors=self.node_postprocessors,
             )
         else:
@@ -156,13 +158,14 @@ class QueryEngineSetup:
 
             _query_engine = self._configure_query_engine(_index, llm_instance.llm.get_llm())
             _query_engine.update_prompts({
-                "response_synthesizer:text_qa_template": qa_prompt
+                "response_synthesizer:text_qa_template": PromptProvider().get_prompt()
                 .partial_format(tone_name="senior support engineer")})
 
             print(_query_engine.get_prompts())
             now = time.time()
             response = _query_engine.query(query)
             async for text in _stream_response(response):
+                # todo try stopping logic here if text contains any token from stopping sequence break the flow
                 yield f"data: {json.dumps({'text': text})}\n\n"
             yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True, 'source': 'llm'})}\n\n"
         except Exception as e:
