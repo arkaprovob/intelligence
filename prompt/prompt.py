@@ -15,13 +15,10 @@ class PromptProvider:
         ### Query: {query_str}
 
         ### Instructions:
-        1. Answer the query using ONLY the information provided in the context above.
-        2. If the context doesn't contain enough information to fully answer the query, explicitly state: "The provided information is not sufficient to answer this query."
-        3. Do not use any prior knowledge or make any assumptions beyond what is explicitly stated in the context.
-        4. If any part of the query cannot be answered based on the context, clearly indicate which parts lack information.
-        5. Do not speculate or infer beyond what is directly supported by the context.
-        6. Write in a {tone_name} tone.
-        7. If you're unsure about any aspect of the answer, state your uncertainty clearly.
+        1. If the context doesn't contain enough information to fully answer the query, explicitly state: "The provided information is not sufficient to answer this query."
+        2. If any part of the query cannot be answered based on the context, clearly indicate which parts lack information.
+        3. Write in a {tone_name} tone.
+        4. If you're unsure about any aspect of the answer, state your uncertainty clearly.
 
         ### Answer:
         """

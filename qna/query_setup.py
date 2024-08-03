@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Generator, AsyncGenerator
+from typing import List,AsyncGenerator
 from llama_index.core.base.base_query_engine import BaseQueryEngine
 from llama_index.core.indices.vector_store import VectorIndexRetriever
 from llama_index.core.postprocessor import (
@@ -8,23 +8,20 @@ from llama_index.core.postprocessor import (
     SimilarityPostprocessor,
     LongContextReorder,
 )
-from llama_index.core import get_response_synthesizer
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.llms import LLM
 from llama_index.core.indices import VectorStoreIndex
 
 from custom_post_processor import LowercaseNodePostprocessor
 from prompt import PromptProvider
+from qna import get_synthesizer_instance
 
-from utility import get_config_value
-
-from llama_index.core.response_synthesizers import Generation, ResponseMode, TreeSummarize, SimpleSummarize, \
-    BaseSynthesizer
 
 import time
 import json
 import logging
 from llmacpp import LLMPool
+from util.utility import get_config_value
 
 logging.basicConfig(
     format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -115,20 +112,10 @@ class QueryEngineSetup:
                 similarity_top_k=self.config["SIMILARITY_TOP_K"],
                 verbose=True
             )
-            response_synthesizer: BaseSynthesizer = get_response_synthesizer(
-                streaming=True,
-                llm=lm,
-                use_async=self.config["ASYNC_INDEXING"],
-                verbose=True,
-                response_mode=ResponseMode.COMPACT,
-                text_qa_template=PromptProvider().get_prompt()
-            ) # One can either use response_mode or customize that specific template
-            summarizer = SimpleSummarize(text_qa_template=PromptProvider().get_prompt(), llm=lm, streaming=True)
-            # instead of get_response_synthesizer alternative approach to use more customization
             return RetrieverQueryEngine(
                 retriever=retriever,
-                response_synthesizer=response_synthesizer,
-                node_postprocessors=self.node_postprocessors,
+                response_synthesizer=get_synthesizer_instance(llm=lm),
+                node_postprocessors=self.node_postprocessors
             )
         else:
             print("Using index directly")
@@ -161,7 +148,7 @@ class QueryEngineSetup:
                 "response_synthesizer:text_qa_template": PromptProvider().get_prompt()
                 .partial_format(tone_name="senior support engineer")})
 
-            print(_query_engine.get_prompts())
+            # print(_query_engine.get_prompts())
             now = time.time()
             response = _query_engine.query(query)
             async for text in _stream_response(response):
