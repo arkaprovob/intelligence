@@ -2,6 +2,7 @@ import asyncio
 import uuid
 from typing import List
 
+from llama_index.core.callbacks import CallbackManager, LlamaDebugHandler
 from llama_index.llms.llama_cpp import LlamaCPP
 from utility import get_config_value
 
@@ -26,7 +27,8 @@ class LlamaProvider:
             model_kwargs={"n_gpu_layers": get_config_value("GPU_LAYER")},
             system_prompt=system_prompt,
             completion_to_prompt=completion_to_prompt,
-            verbose=True
+            verbose=True,
+            callback_manager=CallbackManager([LlamaDebugHandler(print_trace_on_end=True)])
         )
 
     def get_llm(self):

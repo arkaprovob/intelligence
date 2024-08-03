@@ -411,7 +411,7 @@
             }
 
             // Use marked to parse Markdown
-            botMessage.innerHTML = marked.parse(text);
+            botMessage.innerHTML = text; //marked.parse(text);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 

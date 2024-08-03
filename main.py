@@ -3,7 +3,7 @@ import tempfile
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
+from llama_index.core import SimpleDirectoryReader
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.core import Settings
 from huggingface_hub import notebook_login
@@ -15,30 +15,27 @@ from starlette.middleware.cors import CORSMiddleware
 from cache.cache_ops import RedisCache
 from data_store_engine import DataStore
 from llmacpp import LLMPool
-from prompt import PromptProvider
-from query_engine_setup import QueryEngineSetup
+
+
 from ingestion_engine import Ingestion
 from fastapi.staticfiles import StaticFiles
 
 from tinydb import TinyDB
 import ssl
 
+from qna.query_setup import QueryEngineSetup
 from utility import get_config_value
-import logging
+
 import json
 
-import uvicorn
+import logging
+import sys
 
-# Configure the logging with a specific format
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+import llama_index.core
 
-# Now use the logger
-logger = logging.getLogger(__name__)
-logger.info("Executing startup code")
+llama_index.core.set_global_handler("simple")
 
 
 class Query(BaseModel):
@@ -74,7 +71,6 @@ model_name = get_config_value("INFERENCING_MODEL")
 notebook_login()
 model_url = get_config_value("MODEL_URL")
 
-#prompt_provider = PromptProvider(model_name, cache_dir=cache_dir)
 
 llm_pool = LLMPool(
     num_instances=no_of_llm_instances,
@@ -89,7 +85,6 @@ query_engine: QueryEngineSetup = None  # Will be initialized in lifespan
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Executing startup code")
     # Startup
     await llm_pool.initialize()
     global query_engine
@@ -115,7 +110,7 @@ if cert_file is not None or key_file is not None:
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ssl_context.load_cert_chain('cert.pem', keyfile='key.pem')
 else:
-    logger.warning("SSL files not found, proceeding without SSL configuration.")
+    print("SSL files not found, proceeding without SSL configuration.")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -132,6 +127,7 @@ async def stream(query: Query = Body(...)):
 
 @app.get('/query-stream/')
 async def stream(query: str = None, workspace: str = "spaship_docs", nocache: int = 1):
+    logging.info("wow it working")
     if not query:
         return {"error": "Query parameter is required."}
     if not workspace:
