@@ -7,6 +7,7 @@ from llama_index.core.node_parser import SentenceWindowNodeParser, SentenceSplit
 from llama_index.core.schema import MetadataMode
 
 from data_store_engine import DataStore
+from ingestion import ChunkNodeParser
 from llmacpp import LLMPool
 from utility import get_config_value
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
@@ -30,7 +31,7 @@ class Ingestion:
 
         # 2. todo explore TokenTextSplitter
         self.node_parser = SentenceWindowNodeParser(
-            window_size=3,
+            window_size=5,
             window_metadata_key="window",
             original_text_metadata_key="original_text"
         )
