@@ -1,0 +1,34 @@
+spaship is a platform for deploying, integrating, and managing single-page apps (spas). spaship is an open source project. it is optimized to deploy and host spas in a very efficient and performant way.
+confused ... 😕 let me break it down for you 😃
+spaship as a product abstracts the underlying deployment infrastructure through a management portal (spaship manager or cli) and cloud-native deployment engine so that the developers can focus on developing spas rather than dealing with deployment/delivery and ci configurations. spaship focuses on improving the deployment experience for developers by providing an easy to use cli tool, an interactive user interface for web property management and with the ability to be integrated with existing ci based deployment platforms.
+in short, spaship is designed to make it simple for developers to deploy their spas on any platform (including kubernetes based ones) without having to know the details of the infrastructure setup. the application setup and website registration are just a one-time configuration, do it once and then forget. focus on what you care about the most! the end goal of spaship is to rid developers of everyday pain points such as:
+    dealing with infrastructure
+    dealing with ci
+    long deployment time
+    fixed number of environments to work with
+what is spa 📌 ?
+a single-page application (spa) is an application that is run client-side in a user’s browser. it is loaded with a single page request and the content of the application is updated via javascript. it is generally comprised of static assets such as javascript, css, and html.
+spas are all about serving an outstanding ux by trying to imitate a “natural” environment in the browser — no page reloads, no extra wait time. it is just one web page that you visit which then loads all other content using javascript — which they heavily depend on.
+info
+so the mission of spaship is to provide delightful single-page app deployment and hosting.
+problems spaship tackle ♻️#
+    deploying web apps are too difficult. it consumes a lot of developer time.
+        manually uploading zip files through drupal.
+        creating new openshift origins per spa.
+        using static hosting like netstorage.
+    development lifecycle is manual, complex, and inefficient.
+        running in a real environment (eg, qa, stage, prod)
+        ci/cd
+    claiming url namespaces at any path requires manual mappings in f5 and akamai
+solutions spaship provides 💻 💯#
+    efficient deployment of spas.
+        deploy apps across any environment in a matter of seconds.
+    provide bootstrap, configuration & spa developer experience.
+    chroming
+        supports apache server side includes(ssi).
+    routing & namespace management
+    ci/cd, lifecycle & validation
+    easily layered on top of existing sites
+what spaship isn't .... ❌
+    spaship is not limited to front-end tech choices. we can use any tech stack for spas development.
+    it is not replacement of create-react-app, vue-cli . it doesn't create a react or vue project setup for us.
