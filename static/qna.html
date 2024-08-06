@@ -298,9 +298,17 @@
             margin: 15% auto;
             padding: 2rem;
             border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 20px rgba(238, 0, 0, 0.2), /* Mild red glow */
+                        0 10px 20px rgba(0, 0, 0, 0.1); /* Existing shadow for depth */
             width: 90%;
             max-width: 500px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        /* Optional: Intensify the glow on hover for a subtle interactive effect */
+        .modal-content:hover {
+            box-shadow: 0 0 25px rgba(238, 0, 0, 0.3), /* Slightly stronger red glow on hover */
+                        0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .modal-content h3 {
