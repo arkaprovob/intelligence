@@ -249,19 +249,35 @@
             margin-right: 8px;
             font-weight: 900;
         }
-        .downvote-button {
+        .downvote-button, .upvote-button {
             background: none;
             border: none;
-            color: #ee0000;
             cursor: pointer;
             font-size: 1.2em;
             margin-left: 10px;
-            opacity: 0.5;
             transition: opacity 0.3s;
+            padding: 0;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
         }
 
-        .downvote-button:hover {
-            opacity: 1;
+        .downvote-button:hover, .upvote-button:hover {
+            opacity: 0.7;
+        }
+
+        .downvote-button i, .upvote-button i {
+            display: flex;
+        }
+
+        .upvote-button {
+            color: #58d68d; /* Green color for upvote */
+        }
+
+        .downvote-button {
+            color: #ee0000; /* Red color for downvote */
         }
     </style>
 </head>
@@ -505,20 +521,57 @@
             // Use marked to parse Markdown
             botMessage.innerHTML = marked.parse(text);
 
+
+            // up vote
+            const upvoteButton = document.createElement('button');
+            upvoteButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+            upvoteButton.classList.add('upvote-button');
+            upvoteButton.addEventListener('click', function() {
+                console.log('Response downvoted');
+                showPopupWarning('Thanks for the positive feedback! Our AI is doing a little happy dance right now.', '#28B463');
+                postFeedback(question,text,1,"anonymous","none")
+            });
+            botMessage.appendChild(upvoteButton);
+
+
             // down vote
             const downvoteButton = document.createElement('button');
             downvoteButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
             downvoteButton.classList.add('downvote-button');
             downvoteButton.addEventListener('click', function() {
-                // Here you would typically send a request to your server to log the downvote
                 console.log('Response downvoted');
-                console.log(question)
-                console.log(text)
-                showPopupWarning('Thanks for the feedback! Our AI is feeling a bit sheepish. Why not try rephrasing your question? Maybe throw in a knock-knock joke for good measure!','#1A5276');
+                showPopupWarning('Thanks for the feedback! Our AI is feeling a bit sheepish. Why not try rephrasing your question? Maybe throw in a knock-knock joke for good measure!','#f39c12');
+                postFeedback(question,text,-1,"anonymous","none")
             });
             botMessage.appendChild(downvoteButton);
 
             chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+
+        // Function to post feedback
+        function postFeedback(question, answer, feedbackValue, user, description) {
+            fetch('http://localhost:8000/docsbot-feedback/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    question: question,
+                    answer: answer,
+                    feedback: feedbackValue,
+                    user: user,
+                    description: description
+                })
+            }).then(response => {
+                if (!response.ok) {
+                    showPopupWarning('Error: Failed to submit feedback.');
+                }
+                console.log('Feedback recorded successfully');
+            }).catch(error => {
+                console.error('Failed to store feedback:', error);
+                showPopupWarning('Error: Failed to store feedback.');
+            });
         }
 
         function showTimeTaken(time) {

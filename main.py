@@ -48,7 +48,7 @@ class Query(BaseModel):
 class FeedbackRequest(BaseModel):
     answer: str
     feedback: int
-    UserQuestion: str
+    question: str
     user: str
     description: str
 
@@ -83,7 +83,7 @@ llm_pool = LLMPool(
 # todo check if this llm param can set in settings and use it from there instead of explicitly passing it
 ingestion_engine: Ingestion = None  # Will be initialized in lifespan
 query_engine: QueryEngineSetup = None  # Will be initialized in lifespan
-db_manager =  DatabaseManager() # Will be initialized in lifespan
+db_manager = DatabaseManager()  # Will be initialized in lifespan
 
 
 @asynccontextmanager
@@ -170,8 +170,8 @@ async def save_feedback(feedback_request: FeedbackRequest):
     try:
         # Insert the feedback data into the TinyDB database
         await db_manager.save_feedback(
-            user_question=feedback_request.UserQuestion, answer=feedback_request.answer,
-            feedback=feedback_request.feedback, user=feedback_request.user,description=feedback_request.description
+            user_question=feedback_request.question, answer=feedback_request.answer,
+            feedback=feedback_request.feedback, user=feedback_request.user, description=feedback_request.description
         )
         return {"status": "success", "data": feedback_request}
     except Exception as e:
