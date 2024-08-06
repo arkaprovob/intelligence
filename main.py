@@ -16,6 +16,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from cache.cache_ops import RedisCache
 from data_store_engine import DataStore
+from feedback import DatabaseManager
 from ingestion import read_docs_bot_file
 from llmacpp import LLMPool
 
@@ -45,9 +46,11 @@ class Query(BaseModel):
 
 
 class FeedbackRequest(BaseModel):
-    message: str
+    answer: str
     feedback: int
     UserQuestion: str
+    user: str
+    description: str
 
 
 class CacheRecord(BaseModel):
@@ -61,8 +64,6 @@ cert_file = get_config_value("SSL_CERT_PATH")
 key_file = get_config_value("SSL_KEY_PATH")
 no_of_llm_instances = get_config_value("NO_OF_LLM_INSTANCES")
 print(f"no_of_llm_instances : {no_of_llm_instances}")
-
-db = get_config_value("TINY_DB_PATH")
 
 cache_dir = get_config_value("CACHE_DIR")
 
@@ -82,12 +83,14 @@ llm_pool = LLMPool(
 # todo check if this llm param can set in settings and use it from there instead of explicitly passing it
 ingestion_engine: Ingestion = None  # Will be initialized in lifespan
 query_engine: QueryEngineSetup = None  # Will be initialized in lifespan
+db_manager =  DatabaseManager() # Will be initialized in lifespan
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     await llm_pool.initialize()
+    await db_manager.kickoff()  # Initialize and set up the database
     global query_engine
     global ingestion_engine
     try:
@@ -96,6 +99,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         print("Executing cleanup code")
+        await db_manager.close()  # Close the database connection pool
 
 
 app = FastAPI(lifespan=lifespan)
@@ -165,7 +169,10 @@ async def insert_into_redis_cache(cache_record: CacheRecord):
 async def save_feedback(feedback_request: FeedbackRequest):
     try:
         # Insert the feedback data into the TinyDB database
-        db.insert(feedback_request.model_dump())
+        await db_manager.save_feedback(
+            user_question=feedback_request.UserQuestion, answer=feedback_request.answer,
+            feedback=feedback_request.feedback, user=feedback_request.user,description=feedback_request.description
+        )
         return {"status": "success", "data": feedback_request}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
