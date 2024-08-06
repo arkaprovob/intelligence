@@ -279,12 +279,109 @@
         .downvote-button {
             color: #ee0000; /* Red color for downvote */
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-content h3 {
+            color: #000;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .modal-buttons button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.1s;
+            margin-left: 10px;
+        }
+
+        #submitFeedback {
+            background-color: #ee0000;
+            color: white;
+        }
+
+        #cancelFeedback {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        #submitFeedback:hover, #cancelFeedback:hover {
+            transform: scale(1.05);
+        }
+
+        #submitFeedback:hover {
+            background-color: #cc0000;
+        }
+
+        #cancelFeedback:hover {
+            background-color: #e0e0e0;
+        }
+
+        #feedbackDescription {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: 'Poppins', Arial, sans-serif;
+            box-sizing: border-box;
+        }
+
+        #feedbackDescription:focus {
+            outline: none;
+            border-color: #ee0000;
+        }
     </style>
 </head>
 <body>
     <div class="menu-bar" id="menuBar">
         <a href="home.html"><i class="fas fa-home"></i> Home</a>
         <a href="ingestion.html" id="ingestionLink"><i class="fa-solid fa-lungs-virus"></i> Ingestion</a>
+    </div>
+
+    <div id="feedbackModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Would you like to add a description for your feedback?</h3>
+            <textarea id="feedbackDescription" rows="4" placeholder="Optional: Describe your feedback here"></textarea>
+            <div class="modal-buttons">
+                <button id="cancelFeedback">Cancel</button>
+                <button id="submitFeedback">Submit</button>
+            </div>
+        </div>
     </div>
 
     <div class="content-wrapper">
@@ -527,9 +624,7 @@
             upvoteButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
             upvoteButton.classList.add('upvote-button');
             upvoteButton.addEventListener('click', function() {
-                console.log('Response downvoted');
-                showPopupWarning('Thanks for the positive feedback! Our AI is doing a little happy dance right now.', '#28B463');
-                postFeedback(question,text,1,"anonymous","none")
+                showFeedbackModal(question, text, 1);
             });
             botMessage.appendChild(upvoteButton);
 
@@ -539,13 +634,47 @@
             downvoteButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
             downvoteButton.classList.add('downvote-button');
             downvoteButton.addEventListener('click', function() {
-                console.log('Response downvoted');
-                showPopupWarning('Thanks for the feedback! Our AI is feeling a bit sheepish. Why not try rephrasing your question? Maybe throw in a knock-knock joke for good measure!','#f39c12');
-                postFeedback(question,text,-1,"anonymous","none")
+                showFeedbackModal(question, text, -1);
             });
             botMessage.appendChild(downvoteButton);
 
             chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+
+        function showFeedbackModal(question, answer, feedbackValue) {
+            const modal = document.getElementById('feedbackModal');
+            const submitBtn = document.getElementById('submitFeedback');
+            const cancelBtn = document.getElementById('cancelFeedback');
+            const descriptionArea = document.getElementById('feedbackDescription');
+
+            modal.style.display = 'block';
+            descriptionArea.value = ''; // Clear previous input
+
+            submitBtn.onclick = function() {
+                const description = descriptionArea.value.trim();
+                postFeedback(question, answer, feedbackValue, "anonymous", description);
+                modal.style.display = 'none';
+                showFeedbackConfirmation(feedbackValue);
+            };
+
+            cancelBtn.onclick = function() {
+                modal.style.display = 'none';
+            };
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        }
+
+        function showFeedbackConfirmation(feedbackValue) {
+            if (feedbackValue === 1) {
+                showPopupWarning('Thanks for the positive feedback! Our AI is doing a little happy dance right now.', '#28B463');
+            } else {
+                showPopupWarning('Thanks for the feedback! Our AI is feeling a bit sheepish. Why not try rephrasing your question? Maybe throw in a knock-knock joke for good measure!', '#f39c12');
+            }
         }
 
 
