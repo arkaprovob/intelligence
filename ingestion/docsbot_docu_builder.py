@@ -7,6 +7,8 @@ from llama_index.core.readers.base import BaseReader
 import re
 import hashlib
 
+from util.utility import get_config_value
+
 
 class DocsBotExtensionFileReader(BaseReader):
     def load_data(self, file, extra_info=None) -> List[Document]:
@@ -49,12 +51,17 @@ class DocsBotExtensionFileReader(BaseReader):
 
         # Split text into chunks
         chunks = re.findall(r'<chunk>(.*?)</chunk>', text, re.DOTALL)
-        chunks = [chunk.strip() for chunk in chunks]
+        chunks = [chunk.strip().lower() for chunk in chunks]
 
         return chunks, metadata
 
 
-def read_docs_bot_file(file_loc: str) -> List[Document]:
+def read_docs_bot_file(file_loc: str = None) -> List[Document]:
+    if file_loc is None:
+        input_dir = get_config_value("SDR_DIR")
+        file_extractor = {".docsbot": DocsBotExtensionFileReader()}
+        reader = SimpleDirectoryReader(input_dir=input_dir, file_extractor=file_extractor)
+        return reader.load_data()
     reader = SimpleDirectoryReader(
         input_files=[file_loc], file_extractor={".docsbot": DocsBotExtensionFileReader()}
     )

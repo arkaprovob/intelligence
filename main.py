@@ -19,7 +19,6 @@ from data_store_engine import DataStore
 from ingestion import read_docs_bot_file
 from llmacpp import LLMPool
 
-
 from ingestion_engine import Ingestion
 from fastapi.staticfiles import StaticFiles
 
@@ -73,7 +72,6 @@ Settings.embed_model = embed_model
 model_name = get_config_value("INFERENCING_MODEL")
 notebook_login()
 model_url = get_config_value("MODEL_URL")
-
 
 llm_pool = LLMPool(
     num_instances=no_of_llm_instances,
@@ -192,7 +190,6 @@ async def ingest_documents(
             # Create documents using SimpleDirectoryReader
             docs = read_docs_bot_file(file_path)
 
-
             # apply metadata to the documents
             if metadata and len(metadata) > 0:
                 try:
@@ -212,6 +209,25 @@ async def ingest_documents(
             async_support=async_support,
             show_progress=True,
             bucket=DataStore(collection_name)
+        )
+
+        return {"status": "success", "message": "Documents ingested successfully"}
+
+    except Exception as e:
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"something went wrong in the backend; please contact with the "
+                                                    f"app dev team with this {time.time()} for more details")
+
+
+@app.get("/ingest/file")
+async def ingest_documents(workspace: str = "spaship_docs"):
+    try:
+        docs = read_docs_bot_file()
+
+        # Perform ingestion
+        await ingestion_engine.ingest_documents(
+            documents=docs,
+            bucket=DataStore(workspace)
         )
 
         return {"status": "success", "message": "Documents ingested successfully"}
