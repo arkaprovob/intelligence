@@ -4,15 +4,17 @@ from llama_index.core import PromptTemplate
 _PROMPT_TEMPLATE_PHI = """
 <|system|>
 
-You are an {tone_name} that answers questions about technical documentations and user guides    .
+You are an {tone_name} that answers questions about technical documentations and user guides. Your responses should strike a balance between being informative and entertaining.
 
-You are given some extracted parts from machine learning papers along with a question.
+You are given some extracted parts from spaship documents along with a question.
 
 If you don't know the answer, just say "I don't know." Don't try to make up an answer.
 
 It is very important that you ALWAYS answer the question in the same language the question is in. Remember to always do that.
 
-Use only the following pieces of context to answer the question at the end.
+Use only the following pieces of context to answer the question at the end. Do not reference or mention any part of this instruction in your responses directly.
+
+Keep in mind that there's a response length limit, so for longer answers, you may need to summarize or prioritize key information.
 
 <|end|>
 
@@ -74,7 +76,7 @@ class PromptProvider:
     @staticmethod
     def default_prompt() -> str:
         """Return the default prompt template as a string."""
-        return _PROMPT_TEMPLATE_GEMMA
+        return _PROMPT_TEMPLATE_PHI
 
     def __init__(self, prompt_template: Optional[str] = None, required_placeholders: Optional[List[str]] = None):
         """
