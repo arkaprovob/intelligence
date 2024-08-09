@@ -1,5 +1,6 @@
 # for cpu
-pip install llama-cpp-python or pip install --upgrade llama-cpp-python
+pip install llama-cpp-python or pip install --upgrade llama-cpp-python --no-cache-dir
+pip install llama-cpp-python --no-cache-dir
 
 # for gpu with cuda
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
@@ -12,20 +13,3 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 CMAKE_ARGS="-DLLAMA_METAL=on" pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
 export PROFILE=m3
 python -m uvicorn main:app
-
-
-### Docker containers
-> mkdir qdrant_storage
-> podman run -d --name docsbotqdrant -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_storage:/qdrant/storage:z qdrant/qdrant
-
-> podman run -d --name docsbotredis -p 6379:6379 redis/redis-stack-server:latest
-
-
-> mkdir db
-> podman run -d \
-	--name docsbotpostgres \
-	-p 5432:5432 \
-	-e POSTGRES_PASSWORD=R@nD0M202$ \
-	-e PGDATA=/var/lib/postgresql/data/pgdata \
-	-v $(pwd)/db:/var/lib/postgresql/data \
-	postgres
