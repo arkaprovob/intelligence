@@ -1,0 +1,297 @@
+openapi: 3.0.0
+info:
+  title: DocsBot api details
+  version: 1.0.0
+  description: API for querying, ingesting documents, and managing feedback
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "UP"
+                  message:
+                    type: string
+                    example: "Service is running"
+
+  /query-stream/:
+    get:
+      summary: Stream a response to a query
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: workspace
+          required: false
+          schema:
+            type: string
+            default: spaship_docs
+        - in: query
+          name: nocache
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: 1 :- every time calls will directly go to the llm ; 0:- incicates it will search in cache first if not found then it will call llm
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/event-stream:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    description: Chunk of generated or cached text
+                  time_taken:
+                    type: number
+                    description: Time taken to generate the response
+                  done:
+                    type: boolean
+                    description: Indicates if the response is complete
+                  source:
+                    type: string
+                    enum: [ cache, llm ]
+                    description: Source of the response
+                  queued:
+                    type: boolean
+                    description: Indicates if the request was queued
+                  error:
+                    type: string
+                    description: Error message if an error occurred
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /cache:
+    post:
+      summary: Insert into Redis cache
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CacheRecord'
+      responses:
+        '200':
+          description: Successfully inserted into cache
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /docsbot-feedback:
+    post:
+      summary: Save feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '200':
+          description: Feedback saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    $ref: '#/components/schemas/FeedbackRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /ingest/file:
+    post:
+      summary: Ingest documents
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                use_node_parser:
+                  type: boolean
+                  default: true
+                async_support:
+                  type: boolean
+                  default: false
+                collection_name:
+                  type: string
+                metadata:
+                  type: string
+      responses:
+        '200':
+          description: Documents ingested successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Documents ingested successfully"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      summary: Ingest documents (GET method) to insert default spaship docs into database
+      parameters:
+        - in: query
+          name: workspace
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Documents ingested successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Documents ingested successfully"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections:
+    get:
+      summary: Get collections
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Query:
+      type: object
+      properties:
+        query:
+          type: string
+
+    FeedbackRequest:
+      type: object
+      properties:
+        answer:
+          type: string
+        feedback:
+          type: integer
+        question:
+          type: string
+        user:
+          type: string
+        description:
+          type: string
+
+    CacheRecord:
+      type: object
+      properties:
+        question:
+          type: string
+        response:
+          type: string
+        metadata:
+          type: object
+        workspace:
+          type: string
+
+    CachedResponse:
+      type: object
+      properties:
+        text:
+          type: string
+        time_taken:
+          type: number
+        done:
+          type: boolean
+        source:
+          type: string
+          enum: [cache]
+
+    LLMResponse:
+      type: object
+      properties:
+        text:
+          type: string
+        time_taken:
+          type: number
+        done:
+          type: boolean
+        source:
+          type: string
+          enum: [llm]
+
+    QueuedResponse:
+      type: object
+      properties:
+        queued:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        done:
+          type: boolean
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
