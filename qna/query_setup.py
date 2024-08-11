@@ -11,6 +11,7 @@ from llama_index.core.postprocessor import (
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.llms import LLM
 from llama_index.core.indices import VectorStoreIndex
+from llama_index.core.vector_stores.types import VectorStoreQueryMode
 
 from custom_post_processor import LowercaseNodePostprocessor
 from prompt import PromptProvider
@@ -110,7 +111,9 @@ class QueryEngineSetup:
             retriever = VectorIndexRetriever(
                 index=_index,
                 similarity_top_k=self.config["SIMILARITY_TOP_K"],
-                verbose=True
+                verbose=True,
+                sparse_top_k=12,
+                vector_store_query_mode=VectorStoreQueryMode.HYBRID
             )
             return RetrieverQueryEngine(
                 retriever=retriever,
@@ -124,6 +127,8 @@ class QueryEngineSetup:
                 streaming=True,
                 node_postprocessors=self.node_postprocessors,
                 llm=lm,
+                sparse_top_k=12,
+                vector_store_query_mode="hybrid",
                 use_async=self.config["ASYNC_INDEXING"],  # todo handle async indexing
             )
 

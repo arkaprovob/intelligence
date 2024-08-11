@@ -76,7 +76,7 @@ class PromptProvider:
     @staticmethod
     def default_prompt() -> str:
         """Return the default prompt template as a string."""
-        return _PROMPT_TEMPLATE_PHI
+        return _PROMPT_TEMPLATE_GEMMA
 
     def __init__(self, prompt_template: Optional[str] = None, required_placeholders: Optional[List[str]] = None):
         """

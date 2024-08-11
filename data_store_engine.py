@@ -60,7 +60,8 @@ class DataStore:
 
     def _init_vector_store(self, collection: str) -> QdrantVectorStore:
         try:
-            return QdrantVectorStore(client=self.db_client, collection_name=collection, prefer_grpc=self.async_support)
+            return QdrantVectorStore(client=self.db_client, collection_name=collection,
+                                     prefer_grpc=self.async_support, enable_hybrid=True)
         except Exception as e:
             logger.error(f"Error initializing vector store: {e}", exc_info=True)
             raise
