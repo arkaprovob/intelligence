@@ -6,6 +6,7 @@
     <title>Q&A</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -373,6 +374,109 @@
             outline: none;
             border-color: #ee0000;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border: none;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header h3 {
+            color: #ee0000;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .expectations {
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .expectations ul {
+            padding-left: 20px;
+            list-style-type: none;
+        }
+
+        .expectations li {
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .expectations li:before {
+            content: attr(data-emoji);
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 24px;
+        }
+
+        .close-button {
+            background-color: #ee0000;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 50px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(238, 0, 0, 0.3);
+        }
+
+        .close-button:hover {
+            background-color: #cc0000;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(238, 0, 0, 0.4);
+        }
+
+        .close-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(238, 0, 0, 0.4);
+        }
+
+
     </style>
 </head>
 <body>
@@ -395,20 +499,29 @@
     <div class="content-wrapper">
         <div class="container">
             <h2><span id="interacting-with">Workspace </span><span id="property-value"></span></h2>
-                <div id="expectations" class="expectations">
-                    <h3>Set Your Expectations (But Not Too High)</h3>
-                    <p>Welcome to our DocsBot experience! Imagine a Ferrari engine... now imagine it in a golf cart. That's kind of what we're working with here. Here's the scoop:</p>
-                    <ul>
-                        <li><b>We're running on a CPU</b>, not a supercomputer. So if you hear fans whirring, that's just our hamster wheel working overtime.</li>
-                        <li><b>We've had to tweak more parameters</b> than a DJ at a wedding. Accuracy and speed might have taken a hit, but hey, who doesn't love a surprise?</li>
-                        <li><b>Only three users can chat at a time</b>. The rest get to enjoy our state-of-the-art queueing system (aka a digital waiting room).</li>
-                        <li><b>Responses might be slower</b> than your grandma's dial-up. Perfect time to grab a snack or contemplate the meaning of life!</li>
-                        <li><b>There's a reply length limit</b>, so long answers might end up like your friend's story after a few drinks - incomplete and leaving you wondering what happened next.</li>
-                        <li><b>We're using a cache</b> system to reduce calls and improve speed. It's like a well-intentioned but slightly confused parrot - sometimes spot on, sometimes... not so much.</li>
-                    </ul>
-                    <p>But fear not! We've sprinkled our special sauce of determination to keep your experience as smooth as possible. So sit back, relax, and enjoy the ride on our AI rollercoaster!</p>
-                    <p><strong>Pro tip:</strong> If you get a cached answer that's as relevant as a fish on a bicycle, don't panic! Either hit that downvote button or try rephrasing your question. We promise our AI is listening... most of the time.</p>
+
+            <div id="expectationsPopup" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>🚀 Welcome to the DocsBot's AI Rollercoaster! 🎢</h3>
+                    </div>
+                    <div id="expectations" class="expectations">
+                        <p>Buckle up, buttercup! You're about to embark on a wild ride through the land of AI. Here's your survival guide:</p>
+                        <ul>
+                            <li>🐹 <strong>Hamster-Powered:</strong> We're running on CPUs, not supercomputers. If you hear squeaking, that's normal.</li>
+                            <li>🎛️ <strong>More Tweaks Than a DJ:</strong> We've adjusted so many parameters, even we're confused.</li>
+                            <li>🧑‍🤝‍🧑 <strong>Exclusive Club:</strong> Only three users at a time. The rest get to enjoy our state-of-the-art queueing system (aka digital twiddling thumbs).</li>
+                            <li>🐌 <strong>Slow and Steady:</strong> Responses might be slower than your grandma's dial-up. Perfect time for a snack!</li>
+                            <li>✂️ <strong>Bite-Sized Answers:</strong> We have a reply length limit. It's like Twitter, but for AI.</li>
+                            <li>🦜 <strong>Confused Parrot Mode:</strong> Our cache system might repeat things. It's not déjà vu, it's just... cache.</li>
+                        </ul>
+                        <p>Remember: Patience is a virtue, and a sense of humor is your best friend here!</p>
+                    </div>
+                    <button id="closeExpectations" class="close-button">I solemnly swear that I'm ready for this joyride!</button>
                 </div>
+            </div>
+
+
             <div id="chat-history"></div>
             <form id="questionForm">
                 <input type="text" id="questionInput" class="questionInput" placeholder="Enter your question here">
@@ -738,17 +851,49 @@
             // Initial state
             updateSubmitButtonState();
 
-            // set your expection
-            const expectationsSection = document.getElementById('expectations');
-            const toggleButton = document.createElement('button');
-            toggleButton.textContent = 'Show/Hide Reality Check';
-            toggleButton.classList.add('toggle-expectations');
-            document.querySelector('.container').insertBefore(toggleButton, document.querySelector('.container h2'));
+            // Show expectations popup
+            const expectationsPopup = document.getElementById('expectationsPopup');
+            expectationsPopup.style.display = 'block';
 
-            toggleButton.addEventListener('click', function() {
-                expectationsSection.style.display = expectationsSection.style.display === 'none' ? 'block' : 'none';
+            // Handle close button
+            const closeButton = document.getElementById('closeExpectations');
+            closeButton.addEventListener('click', function() {
+                expectationsPopup.style.display = 'none';
+                showConfetti();
+                setTimeout(() => {
+                    showPopupWarning("Woohoo! You're officially prepared for this AI adventure. May the odds be ever in your favor!", '#28B463');
+                }, 1000);
             });
         });
+
+
+        function showConfetti() {
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 7,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#ee0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc']
+                });
+                confetti({
+                    particleCount: 7,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#ee0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+
 
         let activePopup = null;
         function showPopupWarning(message, color='#A60000') {
