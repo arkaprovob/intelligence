@@ -13,7 +13,8 @@ from llama_index.core.llms import LLM
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 
-from custom_post_processor import LowercaseNodePostprocessor
+from ingestion import LowercaseNodePostprocessor
+from llm import LLMPool
 from prompt import PromptProvider
 from qna import get_synthesizer_instance
 
@@ -21,7 +22,7 @@ from qna import get_synthesizer_instance
 import time
 import json
 import logging
-from llmacpp import LLMPool
+
 from util.utility import get_config_value
 
 logging.basicConfig(

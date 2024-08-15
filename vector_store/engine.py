@@ -4,10 +4,10 @@ from typing import Union, List, Dict
 from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 import qdrant_client
-from qdrant_client import QdrantClient
-from utility import get_config_value
-
+from qdrant_client import QdrantClient, models
 import logging
+from util import get_config_value
+from vector_store import sparse_doc_vectors, sparse_query_vectors
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
@@ -60,8 +60,24 @@ class DataStore:
 
     def _init_vector_store(self, collection: str) -> QdrantVectorStore:
         try:
+            if not self.db_client.collection_exists(collection):
+                self.db_client.create_collection(
+                    collection_name=collection,
+                    vectors_config={
+                        "text-dense": models.VectorParams(
+                            size=1536,  # openai vector size
+                            distance=models.Distance.COSINE,
+                        )
+                    },
+                    sparse_vectors_config={
+                        "text-sparse": models.SparseVectorParams(
+                            index=models.SparseIndexParams()
+                        )
+                    },
+                )
             return QdrantVectorStore(client=self.db_client, collection_name=collection,
-                                     prefer_grpc=self.async_support, enable_hybrid=True)
+                                     prefer_grpc=self.async_support, enable_hybrid=True,
+                                     sparse_doc_fn=sparse_doc_vectors,sparse_query_fn=sparse_query_vectors,)
         except Exception as e:
             logger.error(f"Error initializing vector store: {e}", exc_info=True)
             raise

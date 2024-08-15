@@ -7,6 +7,8 @@ import threading
 
 from redisvl.utils.vectorize import HFTextVectorizer
 
+from util import get_config_value
+
 
 class RedisCache:
     """
@@ -37,7 +39,8 @@ class RedisCache:
             return cls._instances[key]
 
     def __init__(self, name: str = "docsbot_cache", prefix: str = "docsbot_cache",
-                 redis_url: str = "redis://localhost:6379", distance_threshold=0.06, vectorizer=None):
+                 redis_url: str = f"redis://{get_config_value('REDIS_HOST')}:{get_config_value('REDIS_PORT')}",
+                 distance_threshold=0.06, vectorizer=None):
         # need to be strict about the value of distance_threshold specially
         # when using BAAI/bge-large-en it's a powerful model hence the threshold should be low,
         # compared to the efault model

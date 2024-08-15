@@ -4,7 +4,8 @@ from typing import List
 
 from llama_index.core.callbacks import CallbackManager, LlamaDebugHandler
 from llama_index.llms.llama_cpp import LlamaCPP
-from utility import get_config_value
+
+from util import get_config_value
 
 
 class LlamaProvider:

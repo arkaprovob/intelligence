@@ -14,25 +14,26 @@ from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query 
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from cache.cache_ops import RedisCache
-from data_store_engine import DataStore
+from cache import RedisCache
 from feedback import DatabaseManager
-from ingestion import read_docs_bot_file
-from llmacpp import LLMPool
+from ingestion import read_docs_bot_file, Ingestion
 
-from ingestion_engine import Ingestion
 from fastapi.staticfiles import StaticFiles
 
 from tinydb import TinyDB
 import ssl
 
+from llm import LLMPool
 from qna.query_setup import QueryEngineSetup
-from utility import get_config_value
+
 
 import json
 
 import logging
 import sys
+
+from util import get_config_value
+from vector_store import DataStore
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))

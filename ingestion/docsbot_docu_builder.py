@@ -2,7 +2,6 @@ import os
 from typing import List
 
 from llama_index.core import SimpleDirectoryReader, Document
-from llama_index.core.node_parser import SentenceWindowNodeParser
 from llama_index.core.readers.base import BaseReader
 import re
 import hashlib

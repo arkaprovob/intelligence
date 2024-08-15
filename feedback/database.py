@@ -4,15 +4,18 @@ from typing import List, Dict, Any
 import asyncpg
 from contextlib import asynccontextmanager
 
+from util import get_config_value
+
 
 class DatabaseManager:
     def __init__(self):
         self.pool = None
-        self.DB_HOST = os.getenv("DB_HOST", "localhost")
-        self.DB_PORT = os.getenv("DB_PORT", "5432")
-        self.DB_NAME = os.getenv("DB_NAME", "docs_bot")
-        self.DB_USER = os.getenv("DB_USER", "postgres")
-        self.DB_PASSWORD = os.getenv("DB_PASSWORD", "R@nD0M202$")
+        self.DB_HOST = get_config_value("PG_HOST")
+        self.DB_PORT = get_config_value("PG_PORT")
+        self.DB_NAME = get_config_value("PG_NAME")
+        self.DB_USER = get_config_value("PG_USER")
+        self.DB_PASSWORD = get_config_value("PG_PASSWORD")
+        self.DEFAULT_PG_DATABASE = get_config_value("PG_DEFAULT_DATABASE")
 
     async def create_db_if_not_exists(self):
         # Connect to 'postgres' database to create a new database
@@ -21,7 +24,7 @@ class DatabaseManager:
             port=self.DB_PORT,
             user=self.DB_USER,
             password=self.DB_PASSWORD,
-            database='postgres'
+            database=self.DEFAULT_PG_DATABASE
         )
 
         try:
