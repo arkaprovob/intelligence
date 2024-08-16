@@ -163,6 +163,7 @@ class QueryEngineSetup:
             yield f"data: {json.dumps({'time_taken': round(time.time() - now, 2), 'done': True, 'source': 'llm'})}\n\n"
         except Exception as e:
             logging.error(f"Error processing query: {str(e)}")
+            logging.error("Full stack trace:", exc_info=True)
             yield f"data: {json.dumps({'error': str(e), 'done': False})}\n\n"
         finally:
             if llm_instance:

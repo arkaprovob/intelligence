@@ -9,9 +9,11 @@ import sys
 logging.basicConfig(level=logging.WARNING)
 profile = os.getenv('PROFILE', 'local')
 
+config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.ini')
+
 
 def get_config_value(key):
-    print(f"#### selected profile: {profile} ####")
+    logging.info(f"#### selected profile: {profile} ####")
 
     # read value from environment variable
     value = os.getenv(key)
@@ -19,8 +21,9 @@ def get_config_value(key):
     # if the environment variable is not set or is empty, read from config file
     if not value or value == "":
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read(config_path)
         value = config.get(profile, key, fallback=None)
+        logging.info(f"DEBUG VAlue {value} for key {key}, on profile {profile}xxx")
 
         # if the value is an empty string, set it to None and then log a warning
         if value == "":

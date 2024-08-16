@@ -16,7 +16,7 @@ query_model = AutoModelForMaskedLM.from_pretrained(
     "naver/efficient-splade-VI-BT-large-query"
 )
 
-device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def sparse_doc_vectors(

@@ -8,6 +8,7 @@ from qdrant_client import QdrantClient, models
 import logging
 from util import get_config_value
 from vector_store import sparse_doc_vectors, sparse_query_vectors
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
@@ -16,19 +17,53 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 class DataStore:
+    """
+       DataStore: A resilient and self-managing interface for Qdrant vector database.
+
+       This class provides a connection to a Qdrant vector database, implementing
+        resilience and management features:
+
+       1. Singleton-like behavior: One instance per collection name.
+       2. Automatic connection management:
+          - Retries connection attempts with exponential backoff.
+          - Periodic health checks and automatic reconnection.
+       3. Self-destruction after inactivity:
+          - Closes connection after 5 minutes of inactivity by default.
+       4. Thread-safe operations.
+       5. Support for both synchronous and asynchronous clients.
+
+       Main methods:
+       - get_index(): Retrieves the VectorStoreIndex for the collection.
+       - get_storage_context(): Gets the StorageContext for the collection.
+       - get_list_of_collections(excerpt): Lists collections matching the given excerpt.
+       - close(): Manually close the connection.
+       - close_all(): Class method to close all active connections.
+
+       The class implements automatic retries on connection failures, periodic health checks,
+       and reconnection attempts in case of lost connections, making it resilient to
+       temporary network issues or database unavailability.
+
+       Usage:
+           ds = DataStore("my_collection")
+           index = ds.get_index()
+           # Use index for operations...
+
+       Note: Inactivity timeout and other parameters can be customized during instantiation.
+       """
+
     _instances: Dict[str, 'DataStore'] = {}
     _lock = threading.Lock()
 
     def __new__(cls, collection_name: str, async_support: bool = False, host: str = None, port: int = None,
                 inactivity_timeout: int = 300):
         with cls._lock:
-            if collection_name not in cls._instances:
+            instance = cls._instances.get(collection_name)
+            if instance is None or not instance.is_connected():
                 instance = super().__new__(cls)
                 cls._instances[collection_name] = instance
                 instance.__init__(collection_name, async_support, host, port, inactivity_timeout)
-            return cls._instances[collection_name]
+            return instance
 
     def __init__(self, collection_name: str, async_support: bool = False, host: str = None, port: int = None,
                  inactivity_timeout: int = 300):
@@ -38,15 +73,28 @@ class DataStore:
         self.host = host or get_config_value("QDRANT_HOST")
         self.port = port or get_config_value("QDRANT_PORT")
         self.async_support = async_support
-        self.db_client = self._instantiate_client()
-        self.vector_store = self._init_vector_store(collection_name)
-        self.storage_context = self._init_storage_context()
+        self.db_client = None
+        self.vector_store = None
+        self.storage_context = None
         self.last_activity_time = time.time()
-        self.inactivity_timeout = inactivity_timeout  # in seconds
+        self.inactivity_timeout = inactivity_timeout
         self.timer = None
         self.lock = threading.Lock()
+        self._connect()
         self._start_inactivity_timer()
+        self._start_health_check()
         self.initialized = True
+
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10))
+    def _connect(self):
+        try:
+            print("attempt to connect to the vector db")
+            self.db_client = self._instantiate_client()
+            self.vector_store = self._init_vector_store(self.collection_name)
+            self.storage_context = self._init_storage_context()
+        except Exception as e:
+            logger.error(f"Error connecting to database: {e}", exc_info=True)
+            raise
 
     def _instantiate_client(self) -> Union[QdrantClient, qdrant_client.AsyncQdrantClient]:
         try:
@@ -89,6 +137,23 @@ class DataStore:
             logger.error(f"Error initializing storage context: {e}", exc_info=True)
             raise
 
+    def is_connected(self):
+        try:
+            self.db_client.get_collections()
+            return True
+        except:
+            return False
+
+    def _start_health_check(self):
+        def health_check():
+            while True:
+                time.sleep(60)  # Check every minute
+                if not self.is_connected():
+                    logger.warning("Database connection lost. Attempting to reconnect...")
+                    self._connect()
+
+        threading.Thread(target=health_check, daemon=True).start()
+
     def _start_inactivity_timer(self):
         if self.timer:
             self.timer.cancel()
@@ -110,6 +175,8 @@ class DataStore:
 
     def get_index(self) -> VectorStoreIndex:
         self._update_activity()
+        if not self.is_connected():
+            self._connect()
         try:
             return VectorStoreIndex.from_vector_store(vector_store=self.vector_store)
         except Exception as e:
@@ -118,10 +185,14 @@ class DataStore:
 
     def get_storage_context(self) -> StorageContext:
         self._update_activity()
+        if not self.is_connected():
+            self._connect()
         return self.storage_context
 
     def get_list_of_collections(self, excerpt: str) -> List[str]:
         self._update_activity()
+        if not self.is_connected():
+            self._connect()
         try:
             cs = self.db_client.get_collections()
             return [cs.name for cs in cs.collections if excerpt in cs.name]

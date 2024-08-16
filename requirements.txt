@@ -30,3 +30,4 @@ redisvl
 asyncpg
 pytest
 pytest-asyncio
+tenacity
