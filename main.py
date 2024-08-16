@@ -32,7 +32,7 @@ import json
 import logging
 import sys
 
-from util import get_config_value
+from util import get_config_value, get_services_status
 from vector_store import DataStore
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -123,7 +123,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/health")
 async def health_check():
-    return {"status": "UP", "message": "Service is running"}
+    return get_services_status()
 
 
 @app.post('/query-stream/')

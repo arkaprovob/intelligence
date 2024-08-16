@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import List, Dict, Any
 
@@ -55,8 +56,12 @@ class DatabaseManager:
         )
 
     async def kickoff(self):
-        await self.initialize()
-        await self.init_db()
+        try:
+            await self.initialize()
+            await self.init_db()
+        except Exception as e:
+            print(f"Error during kickoff: {str(e)}")
+            logging.debug("Traceback:", exc_info=True)
 
     async def close(self):
         if self.pool:
