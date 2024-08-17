@@ -162,6 +162,17 @@ async def _init_tables():
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Create application table
+    await db_manager.execute('''
+            CREATE TABLE IF NOT EXISTS application (
+                name TEXT PRIMARY KEY,
+                domain TEXT NOT NULL,
+                tag TEXT NOT NULL,
+                hidden BOOLEAN NOT NULL DEFAULT FALSE
+            )
+        ''')
+
     # Add more table creation queries here for future modules
 
 async def init_database():

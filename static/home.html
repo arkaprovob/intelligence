@@ -94,6 +94,15 @@
             margin-bottom: 20px;
             font-weight: 500; /* little bolder */
         }
+        .property-card.hidden-card {
+          background-color: #e0e0e0;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
+
+        .property-card.hidden-card:hover {
+          transform: none;
+        }
     </style>
 </head>
 <body>
@@ -114,10 +123,7 @@
                     function getPropertyDetails() {
                       // replace with da actual API call logic
                       const dummyData = [
-                        { "property_name": "SPAship Docs", "tag": "Build fast deploy Faster" },
-                        { "property_name": "Hydra", "tag": "One Stop solution for all integrations" },
-                        { "property_name": "DocsBot", "tag": "Let's make the documentation fun" },
-                        { "property_name": "AppDevPlatform", "tag": "Let's build a platform for developers" }
+
                       ];
 
                       // parse URL query parameters
@@ -127,18 +133,39 @@
 
                     // check if pName and pTag exist and add them to dummyData
                     if (pName && pTag) {
-                        dummyData.push({ "property_name": pName, "tag": pTag });
+                        dummyData.push({ "name": pName, "tag": pTag });
                     }
 
                       // todo fix this api address thingy
-                      fetch('http://localhost:8000/api/properties')
+                      fetch('http://localhost:8000/application')
                           .then(response => {
                             if (!response.ok) {
-                              throw new Error('Network response was not ok ' + response.statusText);
+                                showPopupWarning('Network response was not ok ' + response.statusText)
+                                throw new Error('Network response was not ok ' + response.statusText);
                             }
                             return response.json();
                             })
-                          .then(data => generatePropertyCards(data))
+                          .then(data => {
+                              // If we get data from the API, use it
+                              if (data && data.length > 0) {
+                                // Transform the API data to match the expected format
+                                const transformedData = data.map(item => ({
+                                  name: item.name,
+                                  tag: item.tag,
+                                  hidden: item.hidden
+                                }));
+
+                                // Add the new property from URL parameters if it exists
+                                if (pName && pTag) {
+                                  transformedData.push({ "name": pName, "tag": pTag });
+                                }
+
+                                generatePropertyCards(transformedData);
+                              } else {
+                                // If the API returns empty data, fall back to dummy data
+                                generatePropertyCards(dummyData);
+                              }
+                          })
                           .catch(error => {
                             showPopupWarning("API call failed. Using dummy data. " + error);
                             generatePropertyCards(dummyData);
@@ -146,27 +173,32 @@
                     }
 
                     function generatePropertyCards(data) {
-                      const propertyGrid = document.querySelector('.property-grid');
-                      propertyGrid.innerHTML = ''; // !clear existing content!
+                          const propertyGrid = document.querySelector('.property-grid');
+                          propertyGrid.innerHTML = ''; // Clear existing content
 
-                      for (const property of data) {
-                        const card = document.createElement('div');
-                        card.classList.add('property-card');
-                        card.onclick = function() {
-                          window.location.href = `action.html?property=${property.property_name}`;
-                        };
+                          for (const property of data) {
+                            const card = document.createElement('div');
+                            card.classList.add('property-card');
 
-                        const title = document.createElement('h3');
-                        title.textContent = property.property_name;
+                            if (property.hidden) {
+                              card.classList.add('hidden-card');
+                            } else {
+                              card.onclick = function() {
+                                window.location.href = `action.html?property=${encodeURIComponent(property.name)}`;
+                              };
+                            }
 
-                        const description = document.createElement('p');
-                        description.textContent = property.tag;
+                            const title = document.createElement('h3');
+                            title.textContent = property.name;
 
-                        card.appendChild(title);
-                        card.appendChild(description);
+                            const description = document.createElement('p');
+                            description.textContent = property.tag;
 
-                        propertyGrid.appendChild(card);
-                      }
+                            card.appendChild(title);
+                            card.appendChild(description);
+
+                            propertyGrid.appendChild(card);
+                          }
                     }
 
                     function showPopupWarning(message) {

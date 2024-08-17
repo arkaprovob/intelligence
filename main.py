@@ -3,7 +3,7 @@ import tempfile
 import time
 import traceback
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, List
 
 from llama_index.core import SimpleDirectoryReader
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
@@ -14,7 +14,7 @@ from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query 
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from appstate import init_database, db_manager, feedback
+from appstate import init_database, db_manager, feedback, application
 
 from cache import RedisCache
 from ingestion import read_docs_bot_file, Ingestion
@@ -60,6 +60,11 @@ class CacheRecord(BaseModel):
     metadata: Optional[dict] = None
     workspace: str
 
+class Application(BaseModel):
+    name: str
+    domain: str
+    tag: str
+    hidden: bool = False
 
 cert_file = get_config_value("SSL_CERT_PATH")
 key_file = get_config_value("SSL_KEY_PATH")
@@ -252,6 +257,38 @@ async def get_collections(query: str = FQuery(...)):
         return collections
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+
+@app.post("/application")
+async def create_application(app_data: Application):
+    try:
+        await application.save(
+            name=app_data.name,
+            domain=app_data.domain,
+            tag=app_data.tag,
+            hidden=app_data.hidden
+        )
+        return {"message": f"Application '{app_data.name}' created successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while creating the application")
+
+
+@app.get("/application", response_model=List[Application])
+async def get_applications():
+    try:
+        applications = await application.fetch()
+        return [Application(**app) for app in applications]
+    except Exception as e:
+        # TODO log the error here if you have a logging system set up
+        raise HTTPException(status_code=500, detail="An error occurred while fetching applications")
+
+@app.delete("/application/{name}")
+async def delete_application(name: str):
+    try:
+        await application.delete(name)
+        return {"message": f"Application '{name}' deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while deleting the application")
 
 
 if __name__ == "__main__":
