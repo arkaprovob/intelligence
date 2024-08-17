@@ -14,13 +14,13 @@ from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query 
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
+from appstate import init_database, db_manager, feedback
+
 from cache import RedisCache
-from feedback import DatabaseManager
 from ingestion import read_docs_bot_file, Ingestion
 
 from fastapi.staticfiles import StaticFiles
 
-from tinydb import TinyDB
 import ssl
 
 from llm import LLMPool
@@ -84,14 +84,13 @@ llm_pool = LLMPool(
 # todo check if this llm param can set in settings and use it from there instead of explicitly passing it
 ingestion_engine: Ingestion = None  # Will be initialized in lifespan
 query_engine: QueryEngineSetup = None  # Will be initialized in lifespan
-db_manager = DatabaseManager()  # Will be initialized in lifespan
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     await llm_pool.initialize()
-    await db_manager.kickoff()  # Initialize and set up the database
+    await init_database()  # Initialize and set up the database
     global query_engine
     global ingestion_engine
     try:
@@ -166,11 +165,10 @@ async def insert_into_redis_cache(cache_record: CacheRecord):
         logging.error(f"Error inserting into cache: {str(e)}")
 
 
-@app.post("/docsbot-feedback")
+@app.post("/feedback")
 async def save_feedback(feedback_request: FeedbackRequest):
     try:
-        # Insert the feedback data into the TinyDB database
-        await db_manager.save_feedback(
+        await  feedback.save(
             user_question=feedback_request.question, answer=feedback_request.answer,
             feedback=feedback_request.feedback, user=feedback_request.user, description=feedback_request.description
         )

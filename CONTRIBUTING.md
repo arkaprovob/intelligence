@@ -54,6 +54,10 @@ While we had to make some exceptions in our initial release due to constraints, 
 - Use TODO comments for future implementation ideas
 - Ensure function signatures clearly indicate return types and parameter types
 - Use descriptive names for functions and parameters that reflect their purpose
+- Include a brief docstring for each function explaining its purpose, inputs, and outputs
+- Use Union types (e.g., `Union[int, float]` or `int | float`) when a variable can be of multiple types
+- Use Optional types (e.g., `Optional[int]`) when a variable can be None
+- Prefer the `|` syntax for Union types where possible (e.g., `int | float` instead of `Union[int, float]`)
 - Avoid deeply nested logic; prefer flat, readable code structures
 - Add high-level comments to functions explaining:
   - The purpose of input parameters
@@ -87,6 +91,23 @@ def calculate_total_price(item_prices: List[float], discount_percentage: float =
     discounted_total = total * (1 - discount_percentage / 100)
     return round(discounted_total, 2)
 ```
+
+Example of a function with optional parameter
+
+```python
+def greet(name: Optional[str] = None) -> str:
+    if name is None:
+        return "Hello, stranger!"
+    return f"Hello, {name}!"
+```
+
+Example Union
+
+```python
+numeric_value: Union[int, float] = 5  # Can also be written as `numeric_value: int | float = 5`
+optional_greeting: Optional[str] = 'hello'  # This is equivalent to `Union[str, None]`
+```
+
 ### Git Commit Messages
 
 - Use the present tense ("Add feature" not "Added feature")
@@ -109,6 +130,7 @@ While we understand that the initial codebase may not be perfect due to our cons
 - Following the established coding conventions
 - Writing clear, self-documenting code
 - Providing appropriate comments and documentation
+- Follow the guidance provided in general rules
 - Writing unit tests for new functionality
 
 Remember, the goal is to make the codebase easy for others to follow and contribute to. We're committed to improving the overall quality of the project, and your contributions play a crucial role in this effort.

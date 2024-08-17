@@ -804,7 +804,7 @@
 
         // Function to post feedback
         function postFeedback(question, answer, feedbackValue, user, description) {
-            fetch('http://localhost:8000/docsbot-feedback/', {
+            fetch('http://localhost:8000/feedback/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
