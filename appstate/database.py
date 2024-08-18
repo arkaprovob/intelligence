@@ -80,7 +80,7 @@ class DatabaseManager:
         try:
             await connection.execute('SELECT 1')
             return True
-        except asyncpg.exceptions.PostgresError:
+        except asyncpg.exceptions.PostgresError as e:
             logging.error(f"Database connection check failed: {e}")
             return False
 
@@ -170,6 +170,19 @@ async def _init_tables():
                 domain TEXT NOT NULL,
                 tag TEXT NOT NULL,
                 hidden BOOLEAN NOT NULL DEFAULT FALSE
+            )
+        ''')
+
+    # Create ingestion table
+    await db_manager.execute('''
+            CREATE TABLE IF NOT EXISTS ingestion (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                source TEXT NOT NULL,
+                workspace TEXT NOT NULL,
+                metadata JSONB NOT NULL,
+                additionaldetails JSONB,
+                ingested BOOLEAN NOT NULL DEFAULT TRUE
             )
         ''')
 

@@ -336,6 +336,11 @@
         color: #a30000;
     }
 
+    .error-message {
+        color: #ff0000;
+        margin-top: 10px;
+    }
+
     </style>
 </head>
 <body>
@@ -446,6 +451,9 @@
 
 
     <script>
+
+        let workspace = '';
+
         function openPopup(type) {
             document.getElementById(type + 'Popup').style.display = 'block';
         }
@@ -454,33 +462,104 @@
             document.getElementById(type + 'Popup').style.display = 'none';
         }
 
-        function addItem(type) {
+
+
+
+        async function addItem(type) {
+            if (!workspace) {
+                showPopupWarning('Please set a workspace before adding items.');
+                return;
+            }
+
             const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
-            const row = table.insertRow();
-            let cellContent = '';
+            let name, source, metadata, additionaldetails;
 
             if (type === 'file') {
                 const files = document.getElementById('fileUpload').files;
-                cellContent = Array.from(files).map(f => f.name).join(', ');
+                name = Array.from(files).map(f => f.name).join(', ');
+                source = 'file';
+                metadata = document.getElementById('fileMetadata').value;
+                additionaldetails = {
+                    "fileCount": files.length,
+                    "totalSize": Array.from(files).reduce((total, file) => total + file.size, 0)
+                };
             } else {
-                cellContent = document.getElementById(type + 'Url').value;
+                name = document.getElementById(type + 'Url').value;
+                source = type;
+                metadata = document.getElementById(type + 'Metadata').value;
+                additionaldetails = JSON.parse({
+                    apiKey: document.getElementById(type + 'ApiKey').value,
+                    id: document.getElementById(type + 'Id').value,
+                    accessKey: document.getElementById(type + 'AccessKey').value
+                });
             }
 
-            const metadata = document.getElementById(type + 'Metadata').value;
+            try {
+                // Parse metadata if it's a non-empty string, otherwise use an empty object
+                metadata = metadata.trim() ? JSON.parse(metadata) : {};
+                const requestBody = {
+                    name,
+                    source,
+                    workspace,
+                    metadata,
+                    additionaldetails
+                };
+                const response = await fetch('http://127.0.0.1:8000/ingestion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                });
 
-             row.innerHTML = `
-                    <td>${cellContent}</td>
-                    <td>${type}</td>
-                    <td>${metadata}</td>
-                    <td>
-                        <button class="remove-btn" onclick="this.closest('tr').remove()">Remove</button>
-                        <button class="ingest-btn" onclick="ingestItem(this)">Ingest</button>
-                    </td>
-                `;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to add item');
+                }
 
-
-            closePopup(type);
+                const result = await response.json();
+                addRowToTable(result);
+                closePopup(type);
+            } catch (error) {
+                console.error('Error adding item:', error);
+                showPopupWarning('Failed to add item: ' + error.message);
+            }
         }
+
+
+        function addRowToTable(item) {
+            const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+            const row = table.insertRow();
+            row.innerHTML = `
+                <td>${item.name}</td>
+                <td>${item.source}</td>
+                <td>${JSON.stringify(item.metadata)}</td>
+                <td>
+                    <button class="remove-btn" onclick="deleteItem(${item.id}, this)">Remove</button>
+                    <button class="ingest-btn" onclick="ingestItem(this)" ${item.source !== 'file' ? 'disabled' : ''}>Ingest</button>
+                </td>
+            `;
+        }
+
+
+        async function deleteItem(id, button) {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/ingestion/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete item');
+                }
+
+                button.closest('tr').remove();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showPopupWarning('Failed to delete item: ' + error.message);
+            }
+        }
+
+
 
         async function ingestItem(button) {
             const row = button.closest('tr');
@@ -588,34 +667,42 @@
         }
 
         // Load existing entries
-        function loadExistingEntries() {
-            const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+        async function loadExistingEntries() {
+            if (!workspace) {
+                showPopupWarning('Please set a workspace to load entries.');
+                return;
+            }
 
-            // simulating API call with dummy data
-            const dummyData = [
-                { name: 'Example Slack Channel', source: 'slack', metadata: '{"key": "value"}', fromDB: true },
-                { name: 'https://example.com/data', source: 'source', metadata: '{"type": "web"}', fromDB: true },
-                { name: 'document.pdf', source: 'file', metadata: '{"size": "1MB"}', fromDB: true }
-            ];
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/ingestion?workspace=${workspace}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch entries');
+                }
 
-            dummyData.forEach(item => {
-                const row = table.insertRow();
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>${item.source}</td>
-                    <td>${item.metadata}</td>
-                    <td>
-                        <button class="remove-btn" onclick="this.closest('tr').remove()" ${item.fromDB ? 'disabled' : ''}>Remove</button>
-                        <button class="ingest-btn" onclick="ingestItem(this)" ${item.fromDB ? 'disabled' : ''}>Ingest</button>
-                    </td>
-                `;
-            });
+                const entries = await response.json();
+                const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+                table.innerHTML = ''; // Clear existing rows
 
+                entries.forEach(item => addRowToTable(item));
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                showPopupWarning('Failed to load entries: ' + error.message);
+            }
         }
 
         // load existing entries when the page loads
         document.addEventListener('DOMContentLoaded', function() {
-            loadExistingEntries();
+            const queryParams = new URLSearchParams(window.location.search);
+            const propertyParam = queryParams.get('property');
+            if (propertyParam) {
+                workspace = propertyParam.toLowerCase().replace(/\s+/g, '_');
+                document.getElementById('collectionName').textContent = propertyParam;
+                document.getElementById('collectionNameInput').value = workspace;
+                loadExistingEntries();
+            } else {
+                showPopupWarning('Workspace not set. Please set a workspace to enable operations.');
+                disableOperations();
+            }
 
             const infoButton = document.getElementById('infoButton');
             const infoPopup = document.getElementById('infoPopup');
@@ -635,41 +722,23 @@
                 }
             });
 
-
             const infoTextElement = document.getElementById('connectorInfoText');
-
-            // todo duplicate code in the same function, combine the logic and use one query param parser
             const currentUrl = new URL(window.location.href);
             const qp = currentUrl.searchParams;
             const settingsUrl = 'settings.html' + (qp.toString() ? '?' + qp.toString() : '');
             infoTextElement.innerHTML = `Explore your active connectors below. Three pre-built options are available, or create custom connectors in <a href="${settingsUrl}">settings</a> for specialized data sources.`;
 
-            // get the Q&A link element
             const qnaLink = document.getElementById('qnaLink');
             const settingsLink = document.getElementById('settingsLink');
 
-            // if there are query parameters, append them to the Q&A link
             if (qp.toString()) {
                 qnaLink.href = `qna.html?${qp.toString()}`;
                 settingsLink.href = `settings.html?${qp.toString()}`;
-
             }
-
-
 
             const collectionNameDisplay = document.getElementById('collectionName');
             const collectionNameInput = document.getElementById('collectionNameInput');
 
-            // load initial value
-            const queryParams = new URLSearchParams(window.location.search);
-            const propertyParam = queryParams.get('property');
-            if (propertyParam) {
-                const transformedPropertyParam = propertyParam.toLowerCase().replace(/\s+/g, '_');
-                collectionNameDisplay.textContent = propertyParam;
-                collectionNameInput.value = transformedPropertyParam;
-            }
-
-            // toggle edit mode
             collectionNameDisplay.addEventListener('click', function() {
                 collectionNameDisplay.style.display = 'none';
                 collectionNameInput.style.display = 'inline-block';
@@ -677,25 +746,49 @@
                 collectionNameInput.focus();
             });
 
-            // save on enter key
             collectionNameInput.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter') {
                     saveCollectionName();
                 }
             });
 
-            // save on blur
             collectionNameInput.addEventListener('blur', saveCollectionName);
 
             function saveCollectionName() {
-                collectionNameDisplay.textContent = collectionNameInput.value;
-                collectionNameInput.style.display = 'none';
-                collectionNameDisplay.style.display = 'inline-block';
+                const newName = collectionNameInput.value.trim();
+                if (newName) {
+                    collectionNameDisplay.textContent = newName;
+                    workspace = newName.toLowerCase().replace(/\s+/g, '_');
+                    collectionNameInput.style.display = 'none';
+                    collectionNameDisplay.style.display = 'inline-block';
+                    loadExistingEntries();
+                    enableOperations();
+                } else {
+                    showPopupWarning('Please enter a valid workspace name.');
+                }
+            }
 
-                // add code to save the new name to our backend if needed
+            function enableOperations() {
+                document.querySelectorAll('.ingestion-option, .btn, .remove-btn, .ingest-btn').forEach(el => {
+                    el.disabled = false;
+                });
             }
         });
 
+
+
+
+
+
+
+
+
+
+        function disableOperations() {
+            document.querySelectorAll('.ingestion-option, .btn, .remove-btn, .ingest-btn').forEach(el => {
+                el.disabled = true;
+            });
+        }
 
         function showPopupWarning(message) {
             const popup = document.createElement('div');

@@ -3,7 +3,7 @@ import tempfile
 import time
 import traceback
 from contextlib import asynccontextmanager
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from llama_index.core import SimpleDirectoryReader
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
@@ -14,7 +14,7 @@ from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query 
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from appstate import init_database, db_manager, feedback, application
+from appstate import init_database, db_manager, feedback, application, ingestion, IngestionResponse
 
 from cache import RedisCache
 from ingestion import read_docs_bot_file, Ingestion
@@ -65,6 +65,14 @@ class Application(BaseModel):
     domain: str
     tag: str
     hidden: bool = False
+
+class IngestionRequest(BaseModel):
+    name: str
+    source: str
+    workspace: str
+    metadata: Dict[str, Any]
+    additionaldetails: Optional[Dict[str, Any]] = None
+
 
 cert_file = get_config_value("SSL_CERT_PATH")
 key_file = get_config_value("SSL_KEY_PATH")
@@ -290,6 +298,78 @@ async def delete_application(name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while deleting the application")
 
+
+@app.post("/ingestion", response_model=IngestionResponse)
+async def create_ingestion_record(ingestion_data: IngestionRequest):
+    try:
+        # Convert metadata and additionaldetails to JSON strings
+        metadata_json = json.dumps(ingestion_data.metadata)
+        additionaldetails_json = json.dumps(
+            ingestion_data.additionaldetails) if ingestion_data.additionaldetails else None
+
+        ingestion_record = await ingestion.save(
+            name=ingestion_data.name,
+            source=ingestion_data.source,
+            workspace=ingestion_data.workspace,
+            metadata=metadata_json,
+            additionaldetails=additionaldetails_json
+        )
+        if ingestion_record:
+            return IngestionResponse(
+                id = ingestion_record,
+                name=ingestion_data.name,
+                source=ingestion_data.source,
+                workspace=ingestion_data.workspace,
+                metadata=ingestion_data.metadata,
+                additionaldetails=ingestion_data.additionaldetails
+            )
+        else:
+            raise HTTPException(status_code=500, detail=f"for some reason unable to persist the data")
+
+    except json.JSONDecodeError as je:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON in metadata or additionaldetails: {str(je)}")
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
+
+
+@app.get("/ingestion", response_model=List[IngestionResponse])
+async def get_ingestion_records(workspace: str):
+    try:
+        ingestion_list = await ingestion.fetch(workspace=workspace)
+        return ingestion_list
+    except Exception as e:
+        logging.error("An error occurred while fetching ingestions", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An error occurred while fetching ingestions: {str(e)}")
+
+@app.delete("/ingestion/{id}")
+async def delete_ingestion_record(id: int):
+    try:
+        await ingestion.delete(id)
+        return {"message": f"Ingestion with id {id} deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while deleting the ingestion")
+
+@app.put("/ingestion/{id}", response_model=IngestionResponse)
+async def update_ingestion(id: int, ingestion_data: IngestionResponse):
+    try:
+        await ingestion.update(
+            id=id,
+            name=ingestion_data.name,
+            source=ingestion_data.source,
+            metadata=ingestion_data.metadata,
+            additionaldetails=ingestion_data.additionaldetails
+        )
+        # Fetch the updated record
+        updated_ingestion = await ingestion.fetch(workspace=ingestion_data.workspace, limit=1, offset=0)
+        if updated_ingestion:
+            return updated_ingestion
+        else:
+            raise HTTPException(status_code=404, detail="Ingestion not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while updating the ingestion")
 
 if __name__ == "__main__":
     import uvicorn
