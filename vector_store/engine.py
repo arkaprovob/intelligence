@@ -56,7 +56,7 @@ class DataStore:
     _lock = threading.Lock()
 
     def __new__(cls, collection_name: str, async_support: bool = False, host: str = None, port: int = None,
-                inactivity_timeout: int = 300):
+                inactivity_timeout: int = 600):
         with cls._lock:
             instance = cls._instances.get(collection_name)
             if instance is None or not instance.is_connected():
@@ -113,7 +113,7 @@ class DataStore:
                     collection_name=collection,
                     vectors_config={
                         "text-dense": models.VectorParams(
-                            size=1536,  # openai vector size
+                            size=1024,  # bge-large vector size
                             distance=models.Distance.COSINE,
                         )
                     },
