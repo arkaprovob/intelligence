@@ -107,13 +107,26 @@ class DataStore:
             raise
 
     def _init_vector_store(self, collection: str) -> QdrantVectorStore:
+        """
+            This function would be pretty costly with respect to resources during embedding
+            depending on the size of the document. In the future, the scope of improvement would
+            be making it asynchronous so it does not block the call and prevent users from
+            using the other APIs.
+
+            Also, since the hybrid retrieval strategy with sparse vector is on and with the
+            increase in dimension will result in a prolific retrieval accuracy at the same
+            time it will take a huge toll on resources and ingestion process would be time
+            consuming. For the time being, to keep things manageable, I am using a weak
+            embedding model with 384 dimension, yet to test on a large embedding model with
+            1024 dimension eg: `BAAI/bge-large-en-v1.5`.
+            """
         try:
             if not self.db_client.collection_exists(collection):
                 self.db_client.create_collection(
                     collection_name=collection,
                     vectors_config={
                         "text-dense": models.VectorParams(
-                            size=1024,  # bge-large vector size
+                            size=384, # todo Automate embedding model vector size calculation to avoid dimension mismatches.
                             distance=models.Distance.COSINE,
                         )
                     },
