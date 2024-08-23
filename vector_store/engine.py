@@ -57,6 +57,11 @@ class DataStore:
 
     def __new__(cls, collection_name: str, async_support: bool = False, host: str = None, port: int = None,
                 inactivity_timeout: int = 600):
+        """
+        Implements the singleton pattern for DataStore instances.
+        Ensures only one instance per collection name is created or an existing one is returned.
+        """
+
         with cls._lock:
             instance = cls._instances.get(collection_name)
             if instance is None or not instance.is_connected():
@@ -67,6 +72,10 @@ class DataStore:
 
     def __init__(self, collection_name: str, async_support: bool = False, host: str = None, port: int = None,
                  inactivity_timeout: int = 300):
+        """
+        Initializes the DataStore instance with the given parameters.
+        Sets up the connection, inactivity timer, and health check.
+        """
         if hasattr(self, 'initialized'):
             return
         self.collection_name = collection_name
@@ -87,6 +96,10 @@ class DataStore:
 
     @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10))
     def _connect(self):
+        """
+        Establishes a connection to the Qdrant database.
+        Implements retry logic for resilience against temporary connection issues.
+        """
         try:
             print("attempt to connect to the vector db")
             self.db_client = self._instantiate_client()
@@ -97,6 +110,9 @@ class DataStore:
             raise
 
     def _instantiate_client(self) -> Union[QdrantClient, qdrant_client.AsyncQdrantClient]:
+        """
+        Creates and returns either a synchronous or asynchronous Qdrant client based on the configuration.
+        """
         try:
             if self.async_support:
                 return qdrant_client.AsyncQdrantClient(host=self.host, port=self.port)
@@ -144,6 +160,9 @@ class DataStore:
             raise
 
     def _init_storage_context(self) -> StorageContext:
+        """
+        Initializes and returns the storage context using the vector store.
+        """
         try:
             return StorageContext.from_defaults(vector_store=self.vector_store)
         except Exception as e:
@@ -151,6 +170,9 @@ class DataStore:
             raise
 
     def is_connected(self):
+        """
+        Checks if the connection to the Qdrant database is active and working.
+        """
         try:
             self.db_client.get_collections()
             return True
@@ -158,6 +180,10 @@ class DataStore:
             return False
 
     def _start_health_check(self):
+        """
+        Starts a background thread that periodically checks the database connection health.
+        Attempts to reconnect if the connection is lost.
+        """
         def health_check():
             while True:
                 time.sleep(60)  # Check every minute
@@ -168,12 +194,20 @@ class DataStore:
         threading.Thread(target=health_check, daemon=True).start()
 
     def _start_inactivity_timer(self):
+        """
+        Starts or restarts the inactivity timer.
+        The timer will trigger connection closure after a period of inactivity.
+        """
         if self.timer:
             self.timer.cancel()
         self.timer = threading.Timer(self.inactivity_timeout, self._close_if_inactive)
         self.timer.start()
 
     def _close_if_inactive(self):
+        """
+        Closes the connection if there has been no activity for the specified timeout period.
+        Restarts the timer if there has been recent activity.
+        """
         with self.lock:
             if time.time() - self.last_activity_time > self.inactivity_timeout:
                 logger.info(f"Closing connection for {self.collection_name} due to inactivity")
@@ -182,11 +216,19 @@ class DataStore:
                 self._start_inactivity_timer()
 
     def _update_activity(self):
+        """
+        Updates the last activity timestamp and restarts the inactivity timer.
+        Called before performing any operation to prevent unnecessary connection closure.
+        """
         with self.lock:
             self.last_activity_time = time.time()
             self._start_inactivity_timer()
 
     def get_index(self) -> VectorStoreIndex:
+        """
+        Retrieves the VectorStoreIndex for the current collection.
+        Ensures the connection is active before returning the index.
+        """
         self._update_activity()
         if not self.is_connected():
             self._connect()
@@ -197,12 +239,20 @@ class DataStore:
             raise
 
     def get_storage_context(self) -> StorageContext:
+        """
+        Retrieves the StorageContext for the current collection.
+        Ensures the connection is active before returning the context.
+        """
         self._update_activity()
         if not self.is_connected():
             self._connect()
         return self.storage_context
 
     def get_list_of_collections(self, excerpt: str) -> List[str]:
+        """
+        Retrieves a list of collection names that contain the specified excerpt.
+        Ensures the connection is active before querying for collections.
+        """
         self._update_activity()
         if not self.is_connected():
             self._connect()
@@ -214,6 +264,10 @@ class DataStore:
             raise
 
     def close(self):
+        """
+        Closes the connection to the database and cleans up resources.
+        Removes the instance from the class-level instances dictionary.
+        """
         with self._lock:
             if self.collection_name in self._instances:
                 if self.timer:
@@ -228,9 +282,16 @@ class DataStore:
 
     @classmethod
     def close_all(cls):
+        """
+        Class method to close all active DataStore connections.
+        Useful for shutting down the application or freeing resources.
+        """
         with cls._lock:
             for instance in list(cls._instances.values()):
                 instance.close()
 
     def __del__(self):
+        """
+        Destructor to ensure the connection is closed when the object is garbage collected.
+        """
         self.close()

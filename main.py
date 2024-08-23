@@ -1,45 +1,36 @@
+import json
+import logging
 import os
+import ssl
 import tempfile
 import time
 import traceback
 from contextlib import asynccontextmanager
 from typing import Optional, List, Dict, Any
 
-from llama_index.core import SimpleDirectoryReader
-from llama_index.embeddings.fastembed import FastEmbedEmbedding
-from llama_index.core import Settings
-from huggingface_hub import notebook_login
-from pydantic import BaseModel
+import llama_index.core
 from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query as FQuery
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from huggingface_hub import notebook_login
+from llama_index.core import Settings
+from llama_index.embeddings.fastembed import FastEmbedEmbedding
+from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from appstate import init_database, db_manager, feedback, application, ingestion, IngestionResponse
-
 from cache import RedisCache
 from ingestion import read_docs_bot_file, Ingestion
-
-from fastapi.staticfiles import StaticFiles
-
-import ssl
-
 from llm import LLMPool
 from qna.query_setup import QueryEngineSetup
-
-
-import json
-
-import logging
-import sys
-
 from util import get_config_value, get_services_status
+from util.utility import configure_logging
 from vector_store import DataStore
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
-import llama_index.core
+configure_logging()
 
-llama_index.core.set_global_handler("simple")
+if get_config_value("DEBUGGING"):
+    llama_index.core.set_global_handler("simple")
 
 
 class Query(BaseModel):
@@ -60,11 +51,13 @@ class CacheRecord(BaseModel):
     metadata: Optional[dict] = None
     workspace: str
 
+
 class Application(BaseModel):
     name: str
     domain: str
     tag: str
     hidden: bool = False
+
 
 class IngestionRequest(BaseModel):
     name: str
@@ -101,7 +94,7 @@ query_engine: QueryEngineSetup = None  # Will be initialized in lifespan
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    logging.info("Application startup kicked off")
     await llm_pool.initialize()
     await init_database()  # Initialize and set up the database
     global query_engine
@@ -290,6 +283,7 @@ async def get_applications():
         # TODO log the error here if you have a logging system set up
         raise HTTPException(status_code=500, detail="An error occurred while fetching applications")
 
+
 @app.delete("/application/{name}")
 async def delete_application(name: str):
     try:
@@ -316,7 +310,7 @@ async def create_ingestion_record(ingestion_data: IngestionRequest):
         )
         if ingestion_record:
             return IngestionResponse(
-                id = ingestion_record,
+                id=ingestion_record,
                 name=ingestion_data.name,
                 source=ingestion_data.source,
                 workspace=ingestion_data.workspace,
@@ -334,7 +328,6 @@ async def create_ingestion_record(ingestion_data: IngestionRequest):
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 
-
 @app.get("/ingestion", response_model=List[IngestionResponse])
 async def get_ingestion_records(workspace: str):
     try:
@@ -344,6 +337,7 @@ async def get_ingestion_records(workspace: str):
         logging.error("An error occurred while fetching ingestions", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An error occurred while fetching ingestions: {str(e)}")
 
+
 @app.delete("/ingestion/{id}")
 async def delete_ingestion_record(id: int):
     try:
@@ -351,6 +345,7 @@ async def delete_ingestion_record(id: int):
         return {"message": f"Ingestion with id {id} deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while deleting the ingestion")
+
 
 @app.put("/ingestion/{id}", response_model=IngestionResponse)
 async def update_ingestion(id: int, ingestion_data: IngestionResponse):
@@ -371,7 +366,8 @@ async def update_ingestion(id: int, ingestion_data: IngestionResponse):
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while updating the ingestion")
 
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app",host="0.0.0.0", port=8000, log_config=None, log_level="info")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_config=None, log_level="info")

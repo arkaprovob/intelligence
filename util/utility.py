@@ -5,15 +5,14 @@ import logging
 import socket
 import sys
 
-# Set up logging
-logging.basicConfig(level=logging.WARNING)
+
 profile = os.getenv('PROFILE', 'local')
 
 config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.ini')
 
 
 def get_config_value(key):
-    logging.info(f"#### selected profile: {profile} ####")
+    logging.debug(f"#### selected profile: {profile} ####")
 
     # read value from environment variable
     value = os.getenv(key)
@@ -23,7 +22,7 @@ def get_config_value(key):
         config = configparser.ConfigParser()
         config.read(config_path)
         value = config.get(profile, key, fallback=None)
-        logging.info(f"DEBUG VAlue {value} for key {key}, on profile {profile}xxx")
+        logging.debug(f"DEBUG VAlue {value} for key {key}, on profile {profile}xxx")
 
         # if the value is an empty string, set it to None and then log a warning
         if value == "":
@@ -96,3 +95,32 @@ def _check_services():
 def get_services_status():
     status = _check_services()
     return status
+
+
+def configure_logging():
+
+    debug = get_config_value("DEBUGGING")
+
+    if debug:
+        log_type = logging.DEBUG
+    else:
+        log_type = logging.INFO
+
+    log_format = '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s'
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format=log_format,
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+
+    # Remove any existing handlers
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    # Add a single stream handler
+    stream_handler = logging.StreamHandler(stream=sys.stdout)
+    stream_handler.setLevel(log_type)
+    stream_handler.setFormatter(logging.Formatter(log_format))
+    logging.getLogger().addHandler(stream_handler)
+    logging.getLogger().setLevel(log_type)

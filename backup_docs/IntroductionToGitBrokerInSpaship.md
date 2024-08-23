@@ -14,20 +14,11 @@ the concept behind the git broker app is to streamline developers' experiences b
 ## process for using git broker:
 let's walk through the process of using git broker to deploy single page applications (spas).
 **step 1:** initiate the normal workflow 3.0 deployment from the spaship manager. additionally, please ensure that it's a gitlab repository on the redhat gitlab instance. to learn more about workflow 3.0, please visit [this blog](https://source.redhat.com/groups/public/spaship/blog_article/introduction_to_spaship_workflow_30).
-![step 1](./images/git_broker_1.png)
 **step 2:** after successfully deploying and registering your application, proceed to the settings and copy the gitbroker webhook url.
-![step 2](./images/git_broker_2.png)
 **step 3:** generate an api key for the specific application from the settings.
-![step 3](./images/git_broker_3.png)
 **step 4:** navigate to the gitlab project repository and click on "settings" in the navigation bar. then, select "webhooks" and proceed to add a new webhook.
-![step 4](./images/git_broker_4.png)
 **step 5:** paste the copied git broker url as the webhook url. in the "secret token" option, paste the api key. enable permissions for push events, tag push events, comments, and merge request events.
-![step 5](./images/git_broker_5.png)
 **step 6:** make a new commit in that repository, and the system will prompt you to specify the environments for deployment.
-![step 6](./images/git_broker_6.png)
 **step 7:** in the comment for the new commit, mention the environment as "spaship dev". this will trigger the initiation of the build and deployment processes.
-![step 7](./images/git_broker_7.png)
 **step 8:** once the operation is completed, you will receive the application deployment status event in the comment.
-![step 8](./images/git_broker_8.png)
 **step 9:** you can verify the status by checking the spaship manager activity stream.
-![step 9](./images/git_broker_9.png)
