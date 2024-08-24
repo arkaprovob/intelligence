@@ -90,12 +90,18 @@ class LLMPool:
             async with self.lock:
                 if self.instances:
                     instance = self.instances.pop()
-                    logging.debug(f"Access granted to LLM instance with ID: {instance.id}")
+                    logging.info(f"Access granted to LLM instance with ID: {instance.id}")
                     return instance, False  # Not queued
                 else:
                     future = asyncio.Future()
                     await self.queue.put(future)
             await future
+            # Once the future is resolved, try to get an instance again
+            logging.debug("future is resolved, trying to grab an instance again")
+            async with self.lock:
+                instance = self.instances.pop()
+                logging.info(f"Access granted to queued request for LLM instance with ID: {instance.id}")
+                return instance, True  # Was queued
         except Exception as e:
             logging.error(f"Error getting LLM instance: {str(e)}")
             raise
@@ -110,7 +116,7 @@ class LLMPool:
                 if not self.queue.empty():
                     waiting_future = self.queue.get_nowait()
                     waiting_future.set_result(None)
-                logging.debug(f"Released LLM instance with ID: {instance.id}")
+                logging.info(f"Released LLM instance with ID: {instance.id}")
         except Exception as e:
             logging.error(f"Error releasing LLM instance: {str(e)}")
             raise
