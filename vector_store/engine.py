@@ -227,6 +227,7 @@ class DataStore:
     def get_index(self) -> VectorStoreIndex:
         """
         Retrieves the VectorStoreIndex for the current collection.
+        If a collection already exists then return the VectorStoreIndex against that collection
         Ensures the connection is active before returning the index.
         """
         self._update_activity()
