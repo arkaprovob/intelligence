@@ -1,10 +1,8 @@
-import json
-import os
 import configparser
 import logging
+import os
 import socket
 import sys
-
 
 profile = os.getenv('PROFILE', 'local')
 
@@ -44,18 +42,20 @@ def get_config_value(key):
 
     return value
 
+
 def _check_port(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((host, port))
     sock.close()
     return result == 0
 
+
 def _check_services():
     services = {
         "Redis": ("REDIS_HOST", "REDIS_PORT"),
         "Quadrant": ("QDRANT_HOST", "QDRANT_PORT"),
         "PostgreSQL": ("PG_HOST", "PG_PORT"),
-        "DocsBot": ("localhost","8000")
+        "DocsBot": ("localhost", "8000")
     }
 
     status = {
@@ -64,8 +64,8 @@ def _check_services():
     }
 
     for service, (host_key, port_key) in services.items():
-        host = "localhost" if host_key=="localhost" else get_config_value(host_key)
-        port = 8000 if port_key=="8000" else get_config_value(port_key)
+        host = "localhost" if host_key == "localhost" else get_config_value(host_key)
+        port = 8000 if port_key == "8000" else get_config_value(port_key)
 
         service_status = {
             "running": False,
@@ -91,6 +91,7 @@ def _check_services():
 
     return status
 
+
 # Example usage in an API context:
 def get_services_status():
     status = _check_services()
@@ -98,7 +99,6 @@ def get_services_status():
 
 
 def configure_logging():
-
     debug = get_config_value("DEBUGGING")
 
     if debug:

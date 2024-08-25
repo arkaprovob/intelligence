@@ -1,5 +1,7 @@
 from typing import List, Dict, Any
+
 from ..database import db_manager
+
 
 class ApplicationManager:
     """
@@ -79,5 +81,6 @@ class ApplicationManager:
         update_values.append(name)
         await db_manager.execute(query, *update_values)
         print(f"Application '{name}' has been updated.")
+
 
 application = ApplicationManager()

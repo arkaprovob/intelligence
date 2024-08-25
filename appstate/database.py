@@ -1,8 +1,11 @@
 import logging
-import asyncpg
 from contextlib import asynccontextmanager
+
+import asyncpg
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
 from util import get_config_value
+
 
 class DatabaseManager:
     """
@@ -51,7 +54,8 @@ class DatabaseManager:
             await sys_conn.close()
 
     @retry(
-        retry=retry_if_exception_type((asyncpg.exceptions.ConnectionDoesNotExistError, asyncpg.exceptions.InterfaceError)),
+        retry=retry_if_exception_type(
+            (asyncpg.exceptions.ConnectionDoesNotExistError, asyncpg.exceptions.InterfaceError)),
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10)
     )
@@ -70,7 +74,6 @@ class DatabaseManager:
         await self.create_db_if_not_exists()
         await self.create_pool()
 
-
     async def close(self):
         if self.pool:
             await self.pool.close()
@@ -86,7 +89,8 @@ class DatabaseManager:
 
     @asynccontextmanager
     @retry(
-        retry=retry_if_exception_type((asyncpg.exceptions.ConnectionDoesNotExistError, asyncpg.exceptions.InterfaceError)),
+        retry=retry_if_exception_type(
+            (asyncpg.exceptions.ConnectionDoesNotExistError, asyncpg.exceptions.InterfaceError)),
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10)
     )
@@ -132,7 +136,6 @@ class DatabaseManager:
         async with self.get_connection() as conn:
             return await conn.fetchval(query, *args)
 
-
     async def get_connection_state(self):
         if self.pool is None:
             return "Not initialized"
@@ -148,6 +151,7 @@ class DatabaseManager:
 
 
 db_manager = DatabaseManager()
+
 
 async def _init_tables():
     # Create tables for all modules
@@ -187,6 +191,7 @@ async def _init_tables():
         ''')
 
     # Add more table creation queries here for future modules
+
 
 async def init_database():
     try:

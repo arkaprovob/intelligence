@@ -1,17 +1,19 @@
 import asyncio
+import logging
 import uuid
 from typing import List
-import logging
 
 from llama_index.core.callbacks import CallbackManager, LlamaDebugHandler
 from llama_index.llms.llama_cpp import LlamaCPP
 
 from util import get_config_value
 
+
 class LlamaProvider:
     """
     Class to provide LlamaCPP instances with specified configurations.
     """
+
     def __init__(self, model_url, stopping_ids, system_prompt=None, completion_to_prompt=None,
                  model_path=None):
         try:
@@ -42,15 +44,18 @@ class LlamaProvider:
     def get_llm(self):
         return self.llm
 
+
 class LLMInstance:
     """
     Class representing an instance of LlamaCPP with a unique ID and a lock.
     """
+
     def __init__(self, llm: LlamaProvider):
-        self.llm: LlamaProvider  = llm
+        self.llm: LlamaProvider = llm
         self.lock = asyncio.Lock()
         self.id = str(uuid.uuid4())  # Unique ID for each instance
         logging.debug(f"assigning id: {self.id} to this llm instance")
+
 
 class LLMPool:
     def __init__(self, num_instances: int, model_url: str, model_path: str, system_prompt: str = None,
@@ -85,7 +90,7 @@ class LLMPool:
             raise
 
     async def get_instance(self):
-        await self.semaphore.acquire() # todo get rid of semaphore, verify the fact : I think its redundant and not needed since pop will remove the instance from the queue so no other incoming request will anyway get access to it unless its returned to the pool
+        await self.semaphore.acquire()  # todo get rid of semaphore, verify the fact : I think its redundant and not needed since pop will remove the instance from the queue so no other incoming request will anyway get access to it unless its returned to the pool
         try:
             async with self.lock:
                 if self.instances:
@@ -107,7 +112,6 @@ class LLMPool:
             raise
         finally:
             self.semaphore.release()
-
 
     async def release_instance(self, instance: LLMInstance):
         try:

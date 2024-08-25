@@ -1,8 +1,9 @@
 from typing import List, Dict, Any
+
 from ..database import db_manager
 
-class FeedbackManager:
 
+class FeedbackManager:
     """
     class for managing feedback-related database operations.
 
@@ -19,7 +20,7 @@ class FeedbackManager:
 
     @staticmethod
     async def save(user_question: str, answer: str = "none", feedback: int = 0, user: str = "anonymous",
-                            description: str = "none"):
+                   description: str = "none"):
         await db_manager.execute('''
             INSERT INTO feedback (answer, feedback, user_question, user_id, description)
             VALUES ($1, $2, $3, $4, $5)
@@ -58,5 +59,6 @@ class FeedbackManager:
             query = f"DELETE FROM feedback WHERE {where_clause}"
             await db_manager.execute(query, *conditions.values())
             print(f"Records matching the conditions {conditions} have been deleted.")
+
 
 feedback = FeedbackManager()

@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>DocsBot Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Red Hat Text', Arial, sans-serif;
@@ -106,144 +106,144 @@
     </style>
 </head>
 <body>
-    <div class="menu-bar" id="menuBar">
-        <a href="home.html" class="active"><i class="fas fa-home"></i> Home</a>
-        <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
-        <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+<div class="menu-bar" id="menuBar">
+    <a class="active" href="home.html"><i class="fas fa-home"></i> Home</a>
+    <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
+    <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+</div>
+
+<div class="content-wrapper">
+    <div class="header-section">
+        <h1>Welcome to DocsBot</h1>
+        <p class="subheader">Select a workspace to begin with</p>
     </div>
 
-    <div class="content-wrapper">
-        <div class="header-section">
-            <h1>Welcome to DocsBot</h1>
-            <p class="subheader">Select a workspace to begin with</p>
-        </div>
+    <div class="property-grid">
+        <script>
+            function getPropertyDetails() {
+              // replace with da actual API call logic
+              const dummyData = [
 
-        <div class="property-grid">
-              <script>
-                    function getPropertyDetails() {
-                      // replace with da actual API call logic
-                      const dummyData = [
+              ];
 
-                      ];
+              // parse URL query parameters
+            const queryParams = new URLSearchParams(window.location.search);
+            const pName = queryParams.get('pName');
+            const pTag = queryParams.get('pTag');
 
-                      // parse URL query parameters
-                    const queryParams = new URLSearchParams(window.location.search);
-                    const pName = queryParams.get('pName');
-                    const pTag = queryParams.get('pTag');
+            // check if pName and pTag exist and add them to dummyData
+            if (pName && pTag) {
+                dummyData.push({ "name": pName, "tag": pTag });
+            }
 
-                    // check if pName and pTag exist and add them to dummyData
-                    if (pName && pTag) {
-                        dummyData.push({ "name": pName, "tag": pTag });
+              // todo fix this api address thingy
+              fetch('http://localhost:8000/application')
+                  .then(response => {
+                    if (!response.ok) {
+                        showPopupWarning('Network response was not ok ' + response.statusText)
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                    })
+                  .then(data => {
+                      // If we get data from the API, use it
+                      if (data && data.length > 0) {
+                        // Transform the API data to match the expected format
+                        const transformedData = data.map(item => ({
+                          name: item.name,
+                          tag: item.tag,
+                          hidden: item.hidden
+                        }));
+
+                        // Add the new property from URL parameters if it exists
+                        if (pName && pTag) {
+                          transformedData.push({ "name": pName, "tag": pTag });
+                        }
+
+                        generatePropertyCards(transformedData);
+                      } else {
+                        // If the API returns empty data, fall back to dummy data
+                        generatePropertyCards(dummyData);
+                      }
+                  })
+                  .catch(error => {
+                    showPopupWarning("API call failed. Using dummy data. " + error);
+                    generatePropertyCards(dummyData);
+                  });
+            }
+
+            function generatePropertyCards(data) {
+                  const propertyGrid = document.querySelector('.property-grid');
+                  propertyGrid.innerHTML = ''; // Clear existing content
+
+                  for (const property of data) {
+                    const card = document.createElement('div');
+                    card.classList.add('property-card');
+
+                    if (property.hidden) {
+                      card.classList.add('hidden-card');
+                    } else {
+                      card.onclick = function() {
+                        window.location.href = `action.html?property=${encodeURIComponent(property.name)}`;
+                      };
                     }
 
-                      // todo fix this api address thingy
-                      fetch('http://localhost:8000/application')
-                          .then(response => {
-                            if (!response.ok) {
-                                showPopupWarning('Network response was not ok ' + response.statusText)
-                                throw new Error('Network response was not ok ' + response.statusText);
-                            }
-                            return response.json();
-                            })
-                          .then(data => {
-                              // If we get data from the API, use it
-                              if (data && data.length > 0) {
-                                // Transform the API data to match the expected format
-                                const transformedData = data.map(item => ({
-                                  name: item.name,
-                                  tag: item.tag,
-                                  hidden: item.hidden
-                                }));
+                    const title = document.createElement('h3');
+                    title.textContent = property.name;
 
-                                // Add the new property from URL parameters if it exists
-                                if (pName && pTag) {
-                                  transformedData.push({ "name": pName, "tag": pTag });
-                                }
+                    const description = document.createElement('p');
+                    description.textContent = property.tag;
 
-                                generatePropertyCards(transformedData);
-                              } else {
-                                // If the API returns empty data, fall back to dummy data
-                                generatePropertyCards(dummyData);
-                              }
-                          })
-                          .catch(error => {
-                            showPopupWarning("API call failed. Using dummy data. " + error);
-                            generatePropertyCards(dummyData);
-                          });
-                    }
+                    card.appendChild(title);
+                    card.appendChild(description);
 
-                    function generatePropertyCards(data) {
-                          const propertyGrid = document.querySelector('.property-grid');
-                          propertyGrid.innerHTML = ''; // Clear existing content
+                    propertyGrid.appendChild(card);
+                  }
+            }
 
-                          for (const property of data) {
-                            const card = document.createElement('div');
-                            card.classList.add('property-card');
+            function showPopupWarning(message) {
+                const popup = document.createElement('div');
+                popup.classList.add('popup-warning'); // add a class for styling
+                popup.textContent = message;
 
-                            if (property.hidden) {
-                              card.classList.add('hidden-card');
-                            } else {
-                              card.onclick = function() {
-                                window.location.href = `action.html?property=${encodeURIComponent(property.name)}`;
-                              };
-                            }
+                // Create a container element for better positioning (optional)
+                const popupContainer = document.createElement('div');
+                popupContainer.classList.add('popup-container'); // add a class for styling
+                popupContainer.appendChild(popup);
 
-                            const title = document.createElement('h3');
-                            title.textContent = property.name;
+                document.body.appendChild(popupContainer); // apprnd the container
 
-                            const description = document.createElement('p');
-                            description.textContent = property.tag;
+                const menuBarHeight = document.getElementById('menuBar').offsetHeight;
 
-                            card.appendChild(title);
-                            card.appendChild(description);
+                // centering the text inside the popup
+                popup.style.display = 'flex';
+                popup.style.justifyContent = 'center';
+                popup.style.alignItems = 'center';
+                //popup.style.height = '100%'; ~Don't even try this
 
-                            propertyGrid.appendChild(card);
-                          }
-                    }
+                // Add some styles using inline styles (I am a nuibe please forgive me, not recommended for large projects)
+                popup.style.backgroundColor = '#A60000';
+                popup.style.color = 'white';
+                popup.style.padding = '10px 20px';
+                popup.style.position = 'fixed'; // make it fixed on the screen
+                popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
+                popup.style.width = '100%'; // span the full width of the screen
+                popup.style.left = '0'; // align with the screen's left edge
+                popup.style.zIndex = '1000';
 
-                    function showPopupWarning(message) {
-                        const popup = document.createElement('div');
-                        popup.classList.add('popup-warning'); // add a class for styling
-                        popup.textContent = message;
+                setTimeout(() => {
+                  document.body.removeChild(popupContainer); // remove the container
+                }, 5000); // Hide the popup after 5 seconds
+            }
 
-                        // Create a container element for better positioning (optional)
-                        const popupContainer = document.createElement('div');
-                        popupContainer.classList.add('popup-container'); // add a class for styling
-                        popupContainer.appendChild(popup);
-
-                        document.body.appendChild(popupContainer); // apprnd the container
-
-                        const menuBarHeight = document.getElementById('menuBar').offsetHeight;
-
-                        // centering the text inside the popup
-                        popup.style.display = 'flex';
-                        popup.style.justifyContent = 'center';
-                        popup.style.alignItems = 'center';
-                        //popup.style.height = '100%'; ~Don't even try this
-
-                        // Add some styles using inline styles (I am a nuibe please forgive me, not recommended for large projects)
-                        popup.style.backgroundColor = '#A60000';
-                        popup.style.color = 'white';
-                        popup.style.padding = '10px 20px';
-                        popup.style.position = 'fixed'; // make it fixed on the screen
-                        popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
-                        popup.style.width = '100%'; // span the full width of the screen
-                        popup.style.left = '0'; // align with the screen's left edge
-                        popup.style.zIndex = '1000';
-
-                        setTimeout(() => {
-                          document.body.removeChild(popupContainer); // remove the container
-                        }, 5000); // Hide the popup after 5 seconds
-                    }
-
-                    window.onload = getPropertyDetails; // call the function on page load
-                </script>
-        </div>
-
-        <button class="create-new" onclick="window.location.href='create-property.html'">Create New Workspace</button>
+            window.onload = getPropertyDetails; // call the function on page load
+        </script>
     </div>
 
-    <script>
-    </script>
+    <button class="create-new" onclick="window.location.href='create-property.html'">Create New Workspace</button>
+</div>
+
+<script>
+</script>
 </body>
 </html>

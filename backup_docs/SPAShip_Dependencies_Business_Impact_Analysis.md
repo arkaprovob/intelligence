@@ -1,38 +1,104 @@
 ## critical business functions
-spaship is a business-critical application that hosts 11 properties, each having an average of 4 environments (dev, stage, qa, and prod). on average, each environment has 7 spas, including critical properties such as customer portal, partner connect, and catalogs. the critical business functions that depend on spaship are:
-* hosting environments of different web properties  and spas
+
+spaship is a business-critical application that hosts 11 properties, each having an average of 4 environments (dev,
+stage, qa, and prod). on average, each environment has 7 spas, including critical properties such as customer portal,
+partner connect, and catalogs. the critical business functions that depend on spaship are:
+
+* hosting environments of different web properties and spas
 * ensuring the resiliency of all existing environments
 * automatic management of existing environments
 * supporting both static distribution deployment and containerized deployment
+
 ## service dependencies
+
 the critical business functions of spaship depend on the following parts of the service:
-* **operator** (deployment engine): the operator is responsible for automating the provisioning, monitoring, and regulation of provisioned objects and applications. it interacts with kubernetes apis and is the cloud-native part of spaship that enables developers to create and manage kubernetes objects using http requests. in addition, the operator is critical to hosting environments inside pods where the spas are deployed, ensuring the resiliency and automatic management of existing environments.
-* **orchestrator**: the orchestrator interacts with the operator and sends payloads for processing incoming requests. it also orchestrates the workflow and user inputs, making it critical to the automatic management of existing environments.
-* **the manager**: the manager is the front-end and user interface of spaship, allowing users to interact and provision applications, manage web properties, check reports, and view application deployment statistics. the manager is critical to supporting both static distribution and containerized deployment.
+
+* **operator** (deployment engine): the operator is responsible for automating the provisioning, monitoring, and
+  regulation of provisioned objects and applications. it interacts with kubernetes apis and is the cloud-native part of
+  spaship that enables developers to create and manage kubernetes objects using http requests. in addition, the operator
+  is critical to hosting environments inside pods where the spas are deployed, ensuring the resiliency and automatic
+  management of existing environments.
+* **orchestrator**: the orchestrator interacts with the operator and sends payloads for processing incoming requests. it
+  also orchestrates the workflow and user inputs, making it critical to the automatic management of existing
+  environments.
+* **the manager**: the manager is the front-end and user interface of spaship, allowing users to interact and provision
+  applications, manage web properties, check reports, and view application deployment statistics. the manager is
+  critical to supporting both static distribution and containerized deployment.
+
 ## dependencies on underlying infrastructure mp+
-spaship is deployed in a managed openshift instance provided by managed platform plus, which is critical to the proper functioning of spaship. therefore, any issues with the underlying infrastructure, such as cluster downtime or network outages, could impact the entire spaship stack.
-since spaship is a cloud-native service that relies heavily on the underlying infrastructure to host and manage pods and other related objects, any disruptions to the infrastructure could result in delayed or failed application deployments, leading to financial, reputational, and operational impacts.
-therefore, ensuring that the underlying infrastructure is properly maintained and monitored is crucial to minimize the potential impact on spaship. this includes regular updates and maintenance, monitoring for potential vulnerabilities or failures, and implementing redundancy and failover mechanisms where possible.
-additionally, having clear escalation procedures and cross-functional teams in place can help to ensure that any issues with the underlying infrastructure are addressed promptly and effectively, minimizing the potential impact on spaship and the overall business operations.
+
+spaship is deployed in a managed openshift instance provided by managed platform plus, which is critical to the proper
+functioning of spaship. therefore, any issues with the underlying infrastructure, such as cluster downtime or network
+outages, could impact the entire spaship stack.
+since spaship is a cloud-native service that relies heavily on the underlying infrastructure to host and manage pods and
+other related objects, any disruptions to the infrastructure could result in delayed or failed application deployments,
+leading to financial, reputational, and operational impacts.
+therefore, ensuring that the underlying infrastructure is properly maintained and monitored is crucial to minimize the
+potential impact on spaship. this includes regular updates and maintenance, monitoring for potential vulnerabilities or
+failures, and implementing redundancy and failover mechanisms where possible.
+additionally, having clear escalation procedures and cross-functional teams in place can help to ensure that any issues
+with the underlying infrastructure are addressed promptly and effectively, minimizing the potential impact on spaship
+and the overall business operations.
+
 ## dependencies on akamai solution
-akamai is a content delivery network (cdn) and caching solution that plays a critical role in making applications hosted in spaship available to users around the world. akamai provides mapping of the applications to its network of servers, allowing users to access the applications quickly and efficiently.
-spaship relies heavily on akamai to deliver front-end applications to users around the world, and any issues with akamai's cdn or caching services could impact the availability and performance of these applications. this could result in user frustration, negative feedback, and reputational damage to the organization.
-therefore, it is important to ensure that akamai is properly maintained and monitored to minimize the potential impact on spaship. 
-additionally, having clear escalation procedures and cross-functional teams in place can help to ensure that any issues with akamai's services are addressed promptly and effectively, minimizing the potential impact on spaship and the overall business operations.
+
+akamai is a content delivery network (cdn) and caching solution that plays a critical role in making applications hosted
+in spaship available to users around the world. akamai provides mapping of the applications to its network of servers,
+allowing users to access the applications quickly and efficiently.
+spaship relies heavily on akamai to deliver front-end applications to users around the world, and any issues with
+akamai's cdn or caching services could impact the availability and performance of these applications. this could result
+in user frustration, negative feedback, and reputational damage to the organization.
+therefore, it is important to ensure that akamai is properly maintained and monitored to minimize the potential impact
+on spaship.
+additionally, having clear escalation procedures and cross-functional teams in place can help to ensure that any issues
+with akamai's services are addressed promptly and effectively, minimizing the potential impact on spaship and the
+overall business operations.
+
 ## dependencies on managed database
-spaship uses a managed mongodb service to store its data. if there are any problems with this service, it will affect the spaship middleware, which could lead to the blocking of spa deployments. however, in emergencies, engineers have the option to use internal apis to deploy or update an application.
+
+spaship uses a managed mongodb service to store its data. if there are any problems with this service, it will affect
+the spaship middleware, which could lead to the blocking of spa deployments. however, in emergencies, engineers have the
+option to use internal apis to deploy or update an application.
+
 ## potential impacts of disruptions
+
 disruptions to spaship could result in the following potential impacts:
-* **financial**: loss of revenue due to the inability to deploy front-end applications on time. the front-facing portals hosted by spaship are critical for red hat's revenue generation. if there are disruptions to the deployment of these applications due to issues with spaship, it could affect potential and existing customers. for example, if the customer portal is unavailable for a significant amount of time, potential customers may choose to take their business elsewhere. existing customers may also be affected, as they may need help accessing important product information or completing transactions.
-* **reputational**: damage to red hat's reputation damaged due to delayed or failed application deployments. this can impact the perception of the organization's potential and existing customers, stakeholders, and the public. if redhat’s front-facing portals, such as the customer portal, partner connect, or red hat catalog, experience disruptions due to issues with spaship, it could lead to frustration and negative feedback from users. this could result in a loss of trust in your organization's ability to provide reliable and efficient services, impacting customer loyalty and retention. additionally, negative publicity can spread quickly through social media and other channels, further damaging red hat’s reputation.
-* **operational**: increased workload for the devops team due to manual intervention required to deploy front-end applications. if there are delays or failures in deploying front-end applications due to issues with spaship, devops may need to dedicate additional time and resources to resolve the issue. this could lead to a backlog of other critical devops tasks, potentially impacting the overall performance of devops and red hat as a whole.
+
+* **financial**: loss of revenue due to the inability to deploy front-end applications on time. the front-facing portals
+  hosted by spaship are critical for red hat's revenue generation. if there are disruptions to the deployment of these
+  applications due to issues with spaship, it could affect potential and existing customers. for example, if the
+  customer portal is unavailable for a significant amount of time, potential customers may choose to take their business
+  elsewhere. existing customers may also be affected, as they may need help accessing important product information or
+  completing transactions.
+* **reputational**: damage to red hat's reputation damaged due to delayed or failed application deployments. this can
+  impact the perception of the organization's potential and existing customers, stakeholders, and the public. if
+  redhat’s front-facing portals, such as the customer portal, partner connect, or red hat catalog, experience
+  disruptions due to issues with spaship, it could lead to frustration and negative feedback from users. this could
+  result in a loss of trust in your organization's ability to provide reliable and efficient services, impacting
+  customer loyalty and retention. additionally, negative publicity can spread quickly through social media and other
+  channels, further damaging red hat’s reputation.
+* **operational**: increased workload for the devops team due to manual intervention required to deploy front-end
+  applications. if there are delays or failures in deploying front-end applications due to issues with spaship, devops
+  may need to dedicate additional time and resources to resolve the issue. this could lead to a backlog of other
+  critical devops tasks, potentially impacting the overall performance of devops and red hat as a whole.
+
 ## risk assessment
+
 based on the critical business functions and their dependencies, the following high-priority risks are identified:
-* disruptions to the operator or orchestrator could result in delayed or failed application deployments, leading to financial and reputational impacts.
-* disruptions to the manager could result in a loss of visibility into application deployment statistics and other critical functions, leading to reputational and operational impacts.
-to mitigate these risks, the following risk mitigation strategies are recommended:
+
+* disruptions to the operator or orchestrator could result in delayed or failed application deployments, leading to
+  financial and reputational impacts.
+* disruptions to the manager could result in a loss of visibility into application deployment statistics and other
+  critical functions, leading to reputational and operational impacts.
+  to mitigate these risks, the following risk mitigation strategies are recommended:
 * implement redundancy and failover mechanisms for the operator and orchestrator.
 * ensure regular backups of spaship data and implement disaster recovery procedures.
 * monitor for any potential security vulnerabilities and ensure regular updates.
+
 ## conclusion
-spaship is a business-critical application that depends on the operator, orchestrator, manager to host web properties, environments, and spas, ensure the resiliency of existing deployed applications, and support both static distribution deployment and containerized deployment. as a result, disruptions to spaship could have financial, reputational, and operational impacts. to mitigate these risks, it is recommended to implement redundancy and failover mechanisms for critical parts of the service and ensure regular backups and updates.
+
+spaship is a business-critical application that depends on the operator, orchestrator, manager to host web properties,
+environments, and spas, ensure the resiliency of existing deployed applications, and support both static distribution
+deployment and containerized deployment. as a result, disruptions to spaship could have financial, reputational, and
+operational impacts. to mitigate these risks, it is recommended to implement redundancy and failover mechanisms for
+critical parts of the service and ensure regular backups and updates.

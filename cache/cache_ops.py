@@ -1,10 +1,10 @@
 import asyncio
 import json
-from typing import Optional
-from redisvl.extensions.llmcache import SemanticCache
-import time
 import threading
+import time
+from typing import Optional
 
+from redisvl.extensions.llmcache import SemanticCache
 from redisvl.utils.vectorize import HFTextVectorizer
 
 from util import get_config_value
@@ -106,7 +106,7 @@ class RedisCache:
                 await asyncio.sleep(0.001)  # simulate delay between chunks
 
             # Send the done message
-            yield f"data: {json.dumps({'time_taken': time_taken, 'done': True, 'source':'cache'})}\n\n"
+            yield f"data: {json.dumps({'time_taken': time_taken, 'done': True, 'source': 'cache'})}\n\n"
 
         return stream_cached_response()
 

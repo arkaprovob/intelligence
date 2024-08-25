@@ -1,7 +1,10 @@
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel
 import json
+from typing import List, Dict, Any, Optional
+
+from pydantic import BaseModel
+
 from ..database import db_manager
+
 
 class IngestionResponse(BaseModel):
     id: Optional[int]
@@ -11,8 +14,8 @@ class IngestionResponse(BaseModel):
     metadata: Dict[str, Any]
     additionaldetails: Optional[Dict[str, Any]] = None
 
-class IngestionManager:
 
+class IngestionManager:
     """
     Class for managing ingestion-related database operations.
 
@@ -48,7 +51,8 @@ class IngestionManager:
         return value
 
     @staticmethod
-    async def save(name: str, source: str, workspace: str, metadata: Dict[str, Any], additionaldetails: Optional[Dict[str, Any]] = None):
+    async def save(name: str, source: str, workspace: str, metadata: Dict[str, Any],
+                   additionaldetails: Optional[Dict[str, Any]] = None):
         query = '''
             INSERT INTO ingestion (name, source, workspace, metadata, additionaldetails)
             VALUES ($1, $2, $3, $4, $5)
@@ -100,7 +104,8 @@ class IngestionManager:
         await db_manager.execute(query, id)
 
     @staticmethod
-    async def update(id: int, name: str = None, source: str = None, metadata: Dict[str, Any] = None, additionaldetails: Optional[Dict[str, Any]] = None):
+    async def update(id: int, name: str = None, source: str = None, metadata: Dict[str, Any] = None,
+                     additionaldetails: Optional[Dict[str, Any]] = None):
         update_fields = []
         update_values = []
         if name is not None:
@@ -126,5 +131,6 @@ class IngestionManager:
         """
         update_values.append(id)
         await db_manager.execute(query, *update_values)
+
 
 ingestion = IngestionManager()

@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocsBot Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DocsBot Home</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: "RedHatDisplay",Helvetica,Arial,sans-serif;
@@ -118,118 +118,118 @@
     </style>
 </head>
 <body>
-    <div class="menu-bar" id="menuBar">
-        <a href="home.html"><i class="fas fa-home"></i> Home</a>
-        <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
-        <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+<div class="menu-bar" id="menuBar">
+    <a href="home.html"><i class="fas fa-home"></i> Home</a>
+    <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
+    <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+</div>
+
+<div class="content-wrapper">
+
+    <div class="container">
+        <h1>New workspace</h1>
+        <form action="http://127.0.0.1:8000/application" class="create-property-form" method="POST">
+            <label for="workspaceName">Name:</label>
+            <input id="workspaceName" name="workspaceName" required type="text">
+
+            <label for="domain">Domain/Purpose:</label>
+            <input id="domain" name="domain" required type="text">
+
+            <label for="tag">Tag line:</label>
+            <input id="tag" name="tag" required type="text">
+
+            <div class="checkbox-group">
+                <input id="hidden" name="hidden" type="checkbox">
+                <label for="hidden">Hide from property listing</label>
+            </div>
+
+            <button type="submit">Create Property</button>
+        </form>
     </div>
+</div>
 
-    <div class="content-wrapper">
+<script>
+    const form = document.querySelector('.create-property-form');
 
-        <div class="container">
-            <h1>New workspace</h1>
-            <form class="create-property-form" action="http://127.0.0.1:8000/application" method="POST">
-                <label for="workspaceName">Name:</label>
-                <input type="text" id="workspaceName" name="workspaceName" required>
+    form.addEventListener('submit', (event) => {
+        event.preventDefault(); // prevent default form submission
 
-                <label for="domain">Domain/Purpose:</label>
-                <input type="text" id="domain" name="domain" required>
+        const formData = new FormData(form);
+        const applicationData = {
+            name: formData.get('workspaceName'),
+            domain: formData.get('domain'),
+            tag: formData.get('tag'),
+            hidden: formData.get('hidden') === 'on' ? true : false
+        };
 
-                <label for="tag">Tag line:</label>
-                <input type="text" id="tag" name="tag" required>
-
-                <div class="checkbox-group">
-                        <input type="checkbox" id="hidden" name="hidden">
-                        <label for="hidden">Hide from property listing</label>
-                </div>
-
-                <button type="submit">Create Property</button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        const form = document.querySelector('.create-property-form');
-
-        form.addEventListener('submit', (event) => {
-            event.preventDefault(); // prevent default form submission
-
-            const formData = new FormData(form);
-            const applicationData = {
-                name: formData.get('workspaceName'),
-                domain: formData.get('domain'),
-                tag: formData.get('tag'),
-                hidden: formData.get('hidden') === 'on' ? true : false
-            };
-
-            // using fetch to submit the form data asynchronously
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(applicationData)
-            })
-            .then(response => {
-                if (response.ok) {
-                    // redirect on success
-                    window.location.href = 'home.html';
-                } else {
-                    // handle non-OK responses
-                    console.log(response)
-                    return response.json().then(data => {
-                        showPopupWarning("could not create the workspace entry");
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error submitting form:', error);
-                showPopupWarning(error.message);
-            });
-        });
-
-        window.addEventListener('load', () => {
-            if (window.location.search.includes('success=true')) {
-                alert('Property created successfully!');
-                // additional logic before redirection (optional)
+        // using fetch to submit the form data asynchronously
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(applicationData)
+        })
+        .then(response => {
+            if (response.ok) {
+                // redirect on success
+                window.location.href = 'home.html';
+            } else {
+                // handle non-OK responses
+                console.log(response)
+                return response.json().then(data => {
+                    showPopupWarning("could not create the workspace entry");
+                });
             }
+        })
+        .catch(error => {
+            console.error('Error submitting form:', error);
+            showPopupWarning(error.message);
         });
+    });
 
-
-        function showPopupWarning(message) {
-            const popup = document.createElement('div');
-            popup.classList.add('popup-warning'); // add a class for styling
-            popup.textContent = message;
-
-            // create a container element for better positioning (optional)
-            const popupContainer = document.createElement('div');
-            popupContainer.classList.add('popup-container'); // add a class for styling
-            popupContainer.appendChild(popup);
-
-            document.body.appendChild(popupContainer); // append the container
-            const menuBarHeight = document.getElementById('menuBar').offsetHeight;
-
-            // centering the text inside the popup
-            popup.style.display = 'flex';
-            popup.style.justifyContent = 'center';
-            popup.style.alignItems = 'center';
-            //popup.style.height = '100%'; ~Don't even try this
-
-            // add some styles using inline styles (not recommended for large projects)
-            popup.style.backgroundColor = '#A60000';
-            popup.style.color = 'white';
-            popup.style.padding = '10px 20px';
-            popup.style.position = 'fixed'; // Make it fixed on the screen
-            popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
-            popup.style.width = '100%'; // span the full width of the screen
-            popup.style.left = '0'; // align with the screen's left edge
-            popup.style.zIndex = '1000';
-
-            setTimeout(() => {
-              document.body.removeChild(popupContainer); // remove the container
-            }, 5000); // hide the popup after 5 seconds
+    window.addEventListener('load', () => {
+        if (window.location.search.includes('success=true')) {
+            alert('Property created successfully!');
+            // additional logic before redirection (optional)
         }
-    </script>
+    });
+
+
+    function showPopupWarning(message) {
+        const popup = document.createElement('div');
+        popup.classList.add('popup-warning'); // add a class for styling
+        popup.textContent = message;
+
+        // create a container element for better positioning (optional)
+        const popupContainer = document.createElement('div');
+        popupContainer.classList.add('popup-container'); // add a class for styling
+        popupContainer.appendChild(popup);
+
+        document.body.appendChild(popupContainer); // append the container
+        const menuBarHeight = document.getElementById('menuBar').offsetHeight;
+
+        // centering the text inside the popup
+        popup.style.display = 'flex';
+        popup.style.justifyContent = 'center';
+        popup.style.alignItems = 'center';
+        //popup.style.height = '100%'; ~Don't even try this
+
+        // add some styles using inline styles (not recommended for large projects)
+        popup.style.backgroundColor = '#A60000';
+        popup.style.color = 'white';
+        popup.style.padding = '10px 20px';
+        popup.style.position = 'fixed'; // Make it fixed on the screen
+        popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
+        popup.style.width = '100%'; // span the full width of the screen
+        popup.style.left = '0'; // align with the screen's left edge
+        popup.style.zIndex = '1000';
+
+        setTimeout(() => {
+          document.body.removeChild(popupContainer); // remove the container
+        }, 5000); // hide the popup after 5 seconds
+    }
+</script>
 </body>
 </html>

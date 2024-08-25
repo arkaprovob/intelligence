@@ -246,7 +246,7 @@ components:
           type: boolean
         source:
           type: string
-          enum: [cache]
+          enum: [ cache ]
 
     LLMResponse:
       type: object
@@ -259,7 +259,7 @@ components:
           type: boolean
         source:
           type: string
-          enum: [llm]
+          enum: [ llm ]
 
     QueuedResponse:
       type: object

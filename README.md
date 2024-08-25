@@ -2,19 +2,27 @@
 
 ## What is DocsBot?
 
-DocsBot is an early-stage GenAI application designed to improve how developers access and search technical documentation. The project's core purpose? To save developers time and streamline their workflow by consolidating all documentation needs into one intelligent, easy-to-use platform.
+DocsBot is an early-stage GenAI application designed to improve how developers access and search technical
+documentation. The project's core purpose? To save developers time and streamline their workflow by consolidating all
+documentation needs into one intelligent, easy-to-use platform.
 
 ## The Idea Behind DocsBot
 
-Ever felt frustrated searching multiple spaces for that one piece of API information or architecture diagram? We've been there too! That's why we created DocsBot. Here's what makes it special:
+Ever felt frustrated searching multiple spaces for that one piece of API information or architecture diagram? We've been
+there too! That's why we created DocsBot. Here's what makes it special:
 
-- **Unified Search**: No more juggling between different documentation sources. DocsBot brings everything together in one place.
-- **Intelligent Retrieval**: Powered by GenAI, DocsBot doesn't just store docs – it understands them. Ask a question, and it'll either provide the answer or point you to the exact location in the source.
-- **Time-Saving**: According to a [Stack Overflow survey 2023](https://survey.stackoverflow.co/2023/), 10 developers spend an average of 108 hours per year searching for answers or solutions to work-related problems. That's valuable time we're aiming to give back to you!
+- **Unified Search**: No more juggling between different documentation sources. DocsBot brings everything together in
+  one place.
+- **Intelligent Retrieval**: Powered by GenAI, DocsBot doesn't just store docs – it understands them. Ask a question,
+  and it'll either provide the answer or point you to the exact location in the source.
+- **Time-Saving**: According to a [Stack Overflow survey 2023](https://survey.stackoverflow.co/2023/), 10 developers
+  spend an average of 108 hours per year searching for answers or solutions to work-related problems. That's valuable
+  time we're aiming to give back to you!
 
 ## Why DocsBot?
 
-In today's fast-paced development environment, quick access to accurate information is crucial. DocsBot addresses this need by:
+In today's fast-paced development environment, quick access to accurate information is crucial. DocsBot addresses this
+need by:
 
 1. Consolidating information from multiple sources
 2. Providing context-aware search capabilities
@@ -22,18 +30,21 @@ In today's fast-paced development environment, quick access to accurate informat
 4. Understanding complex relationships between different pieces of documentation
 5. Reducing the time spent searching for answers, allowing developers to focus on what they do best – coding!
 
-By leveraging the power of GenAI, DocsBot can find connections that might not be immediately obvious, ensuring you get the most relevant and useful information every time.
+By leveraging the power of GenAI, DocsBot can find connections that might not be immediately obvious, ensuring you get
+the most relevant and useful information every time.
 
 ## Current State and Future Plans
 
-DocsBot is currently in its early stages, focusing on core functionalities due to resource constraints. Here's what we're working with:
+DocsBot is currently in its early stages, focusing on core functionalities due to resource constraints. Here's what we'
+re working with:
 
 - **GGUF model**: For finding connections between documents
 - **Qdrant vector database**: To store documents and excerpts
 - **PostgreSQL**: For saving feedback and application states
 - **LlamaIndex framework**: The backbone of our solution
 
-As we move forward, we plan to add more advanced features while maintaining a balance between accuracy, speed, and convenience.
+As we move forward, we plan to add more advanced features while maintaining a balance between accuracy, speed, and
+convenience.
 
 ## Getting Started
 
@@ -97,8 +108,8 @@ To set up DocsBot (tested on Mac Silicon, should work on Linux and Windows), you
 
 
 7. **Access the DocsBot interface:**
-Once the service is up and running, open your web browser and navigate to:
-[http://localhost:8000/static/home.html](http://localhost:8000/static/home.html)
+   Once the service is up and running, open your web browser and navigate to:
+   [http://localhost:8000/static/home.html](http://localhost:8000/static/home.html)
 
 ## Optional: Testing Network Accessibility
 
@@ -109,10 +120,13 @@ podman run -it --rm --name network-test --network=docsbot alpine sh
 ```
 
 Then test the services using commands like:
+
 ```
 wget docsbotqdrant:6333
 ```
+
 or
+
 ```
 curl docsbotqdrant:6333
 ```
@@ -121,10 +135,12 @@ These should return an HTTP status.
 
 ## Contribute
 
-We're always looking for ways to improve DocsBot! If you have ideas, bug reports, or want to contribute code, please feel free to open an issue or submit a pull request.
+We're always looking for ways to improve DocsBot! If you have ideas, bug reports, or want to contribute code, please
+feel free to open an issue or submit a pull request.
 
 ## Stay Connected
 
-Join us on this exciting journey to revolutionize documentation searching! Follow our progress and share your thoughts – we'd love to hear from you.
+Join us on this exciting journey to revolutionize documentation searching! Follow our progress and share your thoughts –
+we'd love to hear from you.
 
 Happy coding, and may you never lose another minute searching for that elusive piece of documentation again!

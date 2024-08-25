@@ -1,4 +1,5 @@
-from typing import Any, List, Tuple
+from typing import List, Tuple
+
 import torch
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 
@@ -20,7 +21,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def sparse_doc_vectors(
-    texts: List[str],
+        texts: List[str],
 ) -> Tuple[List[List[int]], List[List[float]]]:
     """
     Generates sparse vector representations of input documents.
@@ -76,7 +77,7 @@ def sparse_doc_vectors(
 
 
 def sparse_query_vectors(
-    texts: List[str],
+        texts: List[str],
 ) -> Tuple[List[List[int]], List[List[float]]]:
     """
     Generates sparse vector representations of input queries.
@@ -119,7 +120,6 @@ def sparse_query_vectors(
 
     print(f"device selected {device}")
     tokens = tokens.to(device)
-
 
     output = query_model(**tokens)
     logits, attention_mask = output.logits, tokens.attention_mask

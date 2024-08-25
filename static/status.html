@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Service Status</title>
     <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -133,84 +133,84 @@
     </style>
 </head>
 <body>
-    <div class="menu-bar" id="menuBar">
-        <a href="home.html" class="active"><i class="fas fa-home"></i> Home</a>
-        <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
-        <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
-    </div>
-    <div class="container">
-        <h1>Service Status</h1>
-        <div id="services-container"></div>
-        <div id="last-updated"></div>
-    </div>
+<div class="menu-bar" id="menuBar">
+    <a class="active" href="home.html"><i class="fas fa-home"></i> Home</a>
+    <a href="ingestion.html"><i class="fas fa-file-upload"></i> Ingestion</a>
+    <a href="qna.html"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+</div>
+<div class="container">
+    <h1>Service Status</h1>
+    <div id="services-container"></div>
+    <div id="last-updated"></div>
+</div>
 
-    <script>
-        const POLL_INTERVAL = 3000; // 3 seconds
+<script>
+    const POLL_INTERVAL = 3000; // 3 seconds
 
-        async function fetchStatus() {
-            try {
-                const response = await fetch('http://127.0.0.1:8000/health');
-                const data = await response.json();
-                updateStatus(data);
-                updateLastChecked();
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('services-container').innerHTML = '<p>Error fetching service status.</p>';
+    async function fetchStatus() {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/health');
+            const data = await response.json();
+            updateStatus(data);
+            updateLastChecked();
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('services-container').innerHTML = '<p>Error fetching service status.</p>';
+        }
+    }
+
+    function updateStatus(data) {
+        const container = document.getElementById('services-container');
+
+        Object.entries(data.services).forEach(([serviceName, serviceData]) => {
+            let serviceElement = document.getElementById(`service-${serviceName}`);
+
+            if (!serviceElement) {
+                serviceElement = createServiceElement(serviceName, serviceData);
+                container.appendChild(serviceElement);
+            } else {
+                updateServiceElement(serviceElement, serviceData);
             }
-        }
 
-        function updateStatus(data) {
-            const container = document.getElementById('services-container');
+            serviceElement.classList.add('heartbeat');
+            setTimeout(() => serviceElement.classList.remove('heartbeat'), 500);
+        });
+    }
 
-            Object.entries(data.services).forEach(([serviceName, serviceData]) => {
-                let serviceElement = document.getElementById(`service-${serviceName}`);
+    function createServiceElement(serviceName, serviceData) {
+        const serviceElement = document.createElement('div');
+        serviceElement.className = 'service';
+        serviceElement.id = `service-${serviceName}`;
+        updateServiceElement(serviceElement, serviceData, serviceName);
+        return serviceElement;
+    }
 
-                if (!serviceElement) {
-                    serviceElement = createServiceElement(serviceName, serviceData);
-                    container.appendChild(serviceElement);
-                } else {
-                    updateServiceElement(serviceElement, serviceData);
-                }
+    function updateServiceElement(serviceElement, serviceData, serviceName) {
+        const statusClass = serviceData.running ? 'green' : 'red';
+        const statusText = serviceData.running ? 'Available' : 'Unavailable';
 
-                serviceElement.classList.add('heartbeat');
-                setTimeout(() => serviceElement.classList.remove('heartbeat'), 500);
-            });
-        }
+        serviceElement.innerHTML = `
+            <div class="service-name">${serviceName || serviceElement.querySelector('.service-name').textContent}</div>
+            <div class="status-icon ${statusClass}"></div>
+            <div class="service-status">${statusText}</div>
+            <div class="service-details">
+                <span class="service-detail">Host: ${serviceData.host}</span>
+                <span class="service-detail">Port: ${serviceData.port}</span>
+            </div>
+        `;
+    }
 
-        function createServiceElement(serviceName, serviceData) {
-            const serviceElement = document.createElement('div');
-            serviceElement.className = 'service';
-            serviceElement.id = `service-${serviceName}`;
-            updateServiceElement(serviceElement, serviceData, serviceName);
-            return serviceElement;
-        }
+    function updateLastChecked() {
+        const now = new Date();
+        document.getElementById('last-updated').textContent = `Last updated: ${now.toLocaleTimeString()}`;
+    }
 
-        function updateServiceElement(serviceElement, serviceData, serviceName) {
-            const statusClass = serviceData.running ? 'green' : 'red';
-            const statusText = serviceData.running ? 'Available' : 'Unavailable';
+    function startPolling() {
+        fetchStatus(); // Initial fetch
+        setInterval(fetchStatus, POLL_INTERVAL);
+    }
 
-            serviceElement.innerHTML = `
-                <div class="service-name">${serviceName || serviceElement.querySelector('.service-name').textContent}</div>
-                <div class="status-icon ${statusClass}"></div>
-                <div class="service-status">${statusText}</div>
-                <div class="service-details">
-                    <span class="service-detail">Host: ${serviceData.host}</span>
-                    <span class="service-detail">Port: ${serviceData.port}</span>
-                </div>
-            `;
-        }
-
-        function updateLastChecked() {
-            const now = new Date();
-            document.getElementById('last-updated').textContent = `Last updated: ${now.toLocaleTimeString()}`;
-        }
-
-        function startPolling() {
-            fetchStatus(); // Initial fetch
-            setInterval(fetchStatus, POLL_INTERVAL);
-        }
-
-        startPolling();
-    </script>
+    startPolling();
+</script>
 </body>
 </html>

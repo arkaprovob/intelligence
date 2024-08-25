@@ -5,9 +5,6 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.extractors import TitleExtractor, QuestionsAnsweredExtractor, SummaryExtractor
 from llama_index.core.node_parser import SentenceWindowNodeParser, SentenceSplitter
 from llama_index.core.schema import MetadataMode
-
-
-
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 
 from llm import LLMPool

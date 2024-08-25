@@ -14,9 +14,9 @@ Usage:
 from appstate import db_manager, init_database, feedback, application
 """
 
+from .application.application_manager import application
 from .database import db_manager, init_database
 from .feedback.feedback_manager import feedback
-from .application.application_manager import application
 from .ingestion.ingestion_manager import ingestion, IngestionResponse
 
 __all__ = ['db_manager', 'init_database', 'feedback', 'application', 'ingestion', 'IngestionResponse']

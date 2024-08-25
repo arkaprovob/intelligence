@@ -14,13 +14,15 @@ We want to be transparent about the constraints we faced during the initial deve
 - Resource availability challenges
 - Tight timeframes
 
-Despite these constraints, we've strived to adhere to coding standards as much as possible. However, we acknowledge that there's significant room for improvement, and we welcome your suggestions and contributions.
+Despite these constraints, we've strived to adhere to coding standards as much as possible. However, we acknowledge that
+there's significant room for improvement, and we welcome your suggestions and contributions.
 
 ## How Can I Contribute?
 
 ### Reporting Bugs
 
-This section guides you through submitting a bug report for DocsBot. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
+This section guides you through submitting a bug report for DocsBot. Following these guidelines helps maintainers and
+the community understand your report, reproduce the behavior, and find related reports.
 
 - Use a clear and descriptive title for the issue to identify the problem.
 - Describe the exact steps which reproduce the problem in as many details as possible.
@@ -28,11 +30,13 @@ This section guides you through submitting a bug report for DocsBot. Following t
 
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for DocsBot, including completely new features and minor improvements to existing functionality.
+This section guides you through submitting an enhancement suggestion for DocsBot, including completely new features and
+minor improvements to existing functionality.
 
 - Use a clear and descriptive title for the issue to identify the suggestion.
 - Provide a step-by-step description of the suggested enhancement in as many details as possible.
-- Provide specific examples to demonstrate the steps or point out the part of DocsBot where the enhancement could be implemented.
+- Provide specific examples to demonstrate the steps or point out the part of DocsBot where the enhancement could be
+  implemented.
 - Explain why this enhancement would be useful to most DocsBot users.
 
 ### Pull Requests
@@ -45,7 +49,8 @@ This section guides you through submitting an enhancement suggestion for DocsBot
 
 ## Styleguides and Coding Standards
 
-While we had to make some exceptions in our initial release due to constraints, we are now focusing on maintaining high coding standards. Please adhere to the following guidelines:
+While we had to make some exceptions in our initial release due to constraints, we are now focusing on maintaining high
+coding standards. Please adhere to the following guidelines:
 
 ### General Rules
 
@@ -60,9 +65,9 @@ While we had to make some exceptions in our initial release due to constraints, 
 - Prefer the `|` syntax for Union types where possible (e.g., `int | float` instead of `Union[int, float]`)
 - Avoid deeply nested logic; prefer flat, readable code structures
 - Add high-level comments to functions explaining:
-  - The purpose of input parameters
-  - The overall function behavior
-  - Expected return values
+    - The purpose of input parameters
+    - The overall function behavior
+    - Expected return values
 - Keep functions focused and concise; aim for single responsibility
 - Use type hints in Python to improve code readability and catch potential type-related errors early
 - Write self-documenting code where possible, using clear variable and function names
@@ -125,7 +130,8 @@ All Python must adhere to [PEP 8](https://www.python.org/dev/peps/pep-0008/).
 
 ### Code Quality Expectations
 
-While we understand that the initial codebase may not be perfect due to our constraints, we expect all new contributions to maintain a high standard of code quality. This includes:
+While we understand that the initial codebase may not be perfect due to our constraints, we expect all new contributions
+to maintain a high standard of code quality. This includes:
 
 - Following the established coding conventions
 - Writing clear, self-documenting code
@@ -133,7 +139,8 @@ While we understand that the initial codebase may not be perfect due to our cons
 - Follow the guidance provided in general rules
 - Writing unit tests for new functionality
 
-Remember, the goal is to make the codebase easy for others to follow and contribute to. We're committed to improving the overall quality of the project, and your contributions play a crucial role in this effort.
+Remember, the goal is to make the codebase easy for others to follow and contribute to. We're committed to improving the
+overall quality of the project, and your contributions play a crucial role in this effort.
 
 ## Additional Notes
 

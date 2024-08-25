@@ -1,14 +1,16 @@
+import logging
 import threading
 import time
 from typing import Union, List, Dict
+
+import qdrant_client
 from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.qdrant import QdrantVectorStore
-import qdrant_client
 from qdrant_client import QdrantClient, models
-import logging
+from tenacity import retry, stop_after_attempt, wait_exponential
+
 from util import get_config_value
 from vector_store import sparse_doc_vectors, sparse_query_vectors
-from tenacity import retry, stop_after_attempt, wait_exponential
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
@@ -16,6 +18,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
 
 class DataStore:
     """
@@ -142,7 +145,8 @@ class DataStore:
                     collection_name=collection,
                     vectors_config={
                         "text-dense": models.VectorParams(
-                            size=384, # todo Automate embedding model vector size calculation to avoid dimension mismatches.
+                            size=384,
+                            # todo Automate embedding model vector size calculation to avoid dimension mismatches.
                             distance=models.Distance.COSINE,
                         )
                     },
@@ -154,7 +158,7 @@ class DataStore:
                 )
             return QdrantVectorStore(client=self.db_client, collection_name=collection,
                                      prefer_grpc=self.async_support, enable_hybrid=True,
-                                     sparse_doc_fn=sparse_doc_vectors,sparse_query_fn=sparse_query_vectors,)
+                                     sparse_doc_fn=sparse_doc_vectors, sparse_query_fn=sparse_query_vectors, )
         except Exception as e:
             logger.error(f"Error initializing vector store: {e}", exc_info=True)
             raise
@@ -184,6 +188,7 @@ class DataStore:
         Starts a background thread that periodically checks the database connection health.
         Attempts to reconnect if the connection is lost.
         """
+
         def health_check():
             while True:
                 time.sleep(60)  # Check every minute

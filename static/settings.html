@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>DocsBot Settings</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Red Hat Text', Arial, sans-serif;
@@ -110,98 +110,98 @@
     </style>
 </head>
 <body>
-    <div class="menu-bar" id="menuBar">
-        <a href="home.html"><i class="fas fa-home"></i> Home</a>
-        <a href="action.html" id="action"><i class="fas fa-tasks"></i> Actions</a>
-        <a href="settings.html" class="active" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
-    </div>
+<div class="menu-bar" id="menuBar">
+    <a href="home.html"><i class="fas fa-home"></i> Home</a>
+    <a href="action.html" id="action"><i class="fas fa-tasks"></i> Actions</a>
+    <a class="active" href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+</div>
 
-    <div class="content-wrapper">
-        <h1>DocsBot Settings</h1>
+<div class="content-wrapper">
+    <h1>DocsBot Settings</h1>
 
-        <div class="settings-grid">
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-puzzle-piece"></i>
-                <h3>Change Chunk Settings</h3>
-                <p>Adjust document chunking parameters</p>
-            </div>
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-plus-circle"></i>
-                <h3>Add a New Store</h3>
-                <p>Create a new data storage location</p>
-            </div>
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-exchange-alt"></i>
-                <h3>Change Store Provider</h3>
-                <p>Switch between different storage providers</p>
-            </div>
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-sort-amount-up"></i>
-                <h3>Configure Re-Ranking Models</h3>
-                <p>Set up and adjust re-ranking algorithms</p>
-            </div>
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-magic"></i>
-                <h3>Add Data Transformation Technique</h3>
-                <p>Implement new data processing methods</p>
-            </div>
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-plug"></i>
-                <h3>Add a New Connector</h3>
-                <p>Integrate with external data sources</p>
-            </div>
+    <div class="settings-grid">
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-puzzle-piece"></i>
+            <h3>Change Chunk Settings</h3>
+            <p>Adjust document chunking parameters</p>
+        </div>
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-plus-circle"></i>
+            <h3>Add a New Store</h3>
+            <p>Create a new data storage location</p>
+        </div>
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-exchange-alt"></i>
+            <h3>Change Store Provider</h3>
+            <p>Switch between different storage providers</p>
+        </div>
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-sort-amount-up"></i>
+            <h3>Configure Re-Ranking Models</h3>
+            <p>Set up and adjust re-ranking algorithms</p>
+        </div>
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-magic"></i>
+            <h3>Add Data Transformation Technique</h3>
+            <p>Implement new data processing methods</p>
+        </div>
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-plug"></i>
+            <h3>Add a New Connector</h3>
+            <p>Integrate with external data sources</p>
+        </div>
 
 
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-chart-line"></i>
-                <h3>RAG Evaluation Matrix</h3>
-                <p>Analyze and evaluate RAG performance</p>
-            </div>
-            <div class="settings-card" onclick="showFineTuningOptions(this)">
-                <i class="fas fa-sliders-h"></i>
-                <h3>Fine Tuning</h3>
-                <p>Finetune models</p>
-                <div class="fine-tuning-options" style="display: none;">
-                    <button onclick="window.location.href='#'">Embedding Fine Tuning</button>
-                    <button onclick="window.location.href='#'">Reranker Fine Tuning</button>
-                    <button onclick="window.location.href='#'">Inference Model Fine Tuning</button>
-                </div>
-            </div>
-
-            <div class="settings-card" onclick="window.location.href='#'">
-                <i class="fas fa-user-lock"></i>
-                <h3>Configure Access</h3>
-                <p>Manage user permissions and access controls</p>
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-chart-line"></i>
+            <h3>RAG Evaluation Matrix</h3>
+            <p>Analyze and evaluate RAG performance</p>
+        </div>
+        <div class="settings-card" onclick="showFineTuningOptions(this)">
+            <i class="fas fa-sliders-h"></i>
+            <h3>Fine Tuning</h3>
+            <p>Finetune models</p>
+            <div class="fine-tuning-options" style="display: none;">
+                <button onclick="window.location.href='#'">Embedding Fine Tuning</button>
+                <button onclick="window.location.href='#'">Reranker Fine Tuning</button>
+                <button onclick="window.location.href='#'">Inference Model Fine Tuning</button>
             </div>
         </div>
+
+        <div class="settings-card" onclick="window.location.href='#'">
+            <i class="fas fa-user-lock"></i>
+            <h3>Configure Access</h3>
+            <p>Manage user permissions and access controls</p>
+        </div>
     </div>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentUrl = new URL(window.location.href);
-            const qp = currentUrl.searchParams;
-            const qnaLink = document.getElementById('action');
-            const settingsLink = document.getElementById('settingsLink');
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUrl = new URL(window.location.href);
+        const qp = currentUrl.searchParams;
+        const qnaLink = document.getElementById('action');
+        const settingsLink = document.getElementById('settingsLink');
 
-            if (qp.toString()) {
-                qnaLink.href = `action.html?${qp.toString()}`;
-                settingsLink.href = `settings.html?${qp.toString()}`;
-            }
-
-
-        });
-        function showFineTuningOptions(card) {
-            const options = card.querySelector('.fine-tuning-options');
-            if (options.style.display === 'none') {
-                options.style.display = 'block';
-                card.classList.add('expanded');
-            } else {
-                options.style.display = 'none';
-                card.classList.remove('expanded');
-            }
+        if (qp.toString()) {
+            qnaLink.href = `action.html?${qp.toString()}`;
+            settingsLink.href = `settings.html?${qp.toString()}`;
         }
 
-    </script>
+
+    });
+    function showFineTuningOptions(card) {
+        const options = card.querySelector('.fine-tuning-options');
+        if (options.style.display === 'none') {
+            options.style.display = 'block';
+            card.classList.add('expanded');
+        } else {
+            options.style.display = 'none';
+            card.classList.remove('expanded');
+        }
+    }
+
+</script>
 
 </body>
 </html>

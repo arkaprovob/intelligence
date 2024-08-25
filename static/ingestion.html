@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Document Ingestion</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Red Hat Text', Arial, sans-serif;
@@ -345,485 +345,489 @@
 </head>
 <body>
 
-    <div id="loadingOverlay" class="loading-overlay">
-      <div class="loading-spinner"></div>
-    </div>
-    <div class="menu-bar" id="menuBar">
-        <a href="home.html"><i class="fas fa-home"></i> Home</a>
-        <a href="#" class="active"><i class="fas fa-file-upload"></i> Ingestion</a>
-        <a href="qna.html" id="qnaLink"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
-        <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
-    </div>
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+<div class="menu-bar" id="menuBar">
+    <a href="home.html"><i class="fas fa-home"></i> Home</a>
+    <a class="active" href="#"><i class="fas fa-file-upload"></i> Ingestion</a>
+    <a href="qna.html" id="qnaLink"><i class="fa-solid fa-file-circle-question"></i> Q&A</a>
+    <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+</div>
 
-    <div class="content-wrapper">
+<div class="content-wrapper">
 
-        <h1>Configure data sources for ingestion <i class="fas fa-info-circle" id="infoButton" style="cursor: pointer; font-size: 0.8em; vertical-align: super;"></i></h1>
+    <h1>Configure data sources for ingestion <i class="fas fa-info-circle" id="infoButton"
+                                                style="cursor: pointer; font-size: 0.8em; vertical-align: super;"></i>
+    </h1>
 
-        <div id="infoPopup" class="info-popup" style="display: none;">
-            <div class="info-popup-content">
-                <span class="close-info-popup">&times;</span>
-                <h2>What is this ?</h2>
-                <p>You can add new document sources here. Link your Slack/message channels, and the connectors will work their magic, ingesting that information and turning it into an intelligent knowledge base that you can query.</p>
-            </div>
-        </div>
-
-        <p class="tagline">Let's consolidate all of your documents in one place</p>
-        <div class="collection-name-container">
-            <span class="collection-name-label">Current workspace:</span>
-            <span id="collectionName" class="collection-name-display" contenteditable="false"></span>
-            <input type="text" id="collectionNameInput" class="collection-name-input" style="display: none;">
-        </div>
-        <div class="info-text">
-            <i class="fas fa-info-circle"></i>
-            <span id="connectorInfoText"></span>
-        </div>
-        <div class="ingestion-options">
-            <div class="ingestion-option" onclick="openPopup('slack')">
-                <i class="fab fa-slack"></i>
-                <p>Slack</p>
-            </div>
-            <div class="ingestion-option" onclick="openPopup('source')">
-                <i class="fas fa-link"></i>
-                <p>Source</p>
-            </div>
-            <div class="ingestion-option" onclick="openPopup('file')">
-                <i class="fas fa-file-upload"></i>
-                <p>File Upload</p>
-            </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <h2>Configured documents and sources list</h2>
-        <div class="table-container">
-            <table id="entriesTable">
-                <thead>
-                    <tr>
-                        <th>Link/File Name</th>
-                        <th>Source</th>
-                        <th>Metadata</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Table rows will be dynamically added here -->
-                </tbody>
-            </table>
+    <div class="info-popup" id="infoPopup" style="display: none;">
+        <div class="info-popup-content">
+            <span class="close-info-popup">&times;</span>
+            <h2>What is this ?</h2>
+            <p>You can add new document sources here. Link your Slack/message channels, and the connectors will work
+                their magic, ingesting that information and turning it into an intelligent knowledge base that you can
+                query.</p>
         </div>
     </div>
 
-    <!-- Popup Wizards -->
-    <div id="slackPopup" class="popup">
-        <div class="popup-content">
-            <span class="close" onclick="closePopup('slack')">&times;</span>
-            <h2>Slack Ingestion</h2>
-            <input type="text" id="slackUrl" placeholder="Enter Slack channel URL">
-            <input type="text" id="slackApiKey" placeholder="API Key">
-            <input type="text" id="slackId" placeholder="ID">
-            <input type="text" id="slackAccessKey" placeholder="Access Key (Optional)">
-            <textarea id="slackMetadata" placeholder="Metadata (JSON format)"></textarea>
-            <button class="btn" onclick="addItem('slack')">Add</button>
+    <p class="tagline">Let's consolidate all of your documents in one place</p>
+    <div class="collection-name-container">
+        <span class="collection-name-label">Current workspace:</span>
+        <span class="collection-name-display" contenteditable="false" id="collectionName"></span>
+        <input class="collection-name-input" id="collectionNameInput" style="display: none;" type="text">
+    </div>
+    <div class="info-text">
+        <i class="fas fa-info-circle"></i>
+        <span id="connectorInfoText"></span>
+    </div>
+    <div class="ingestion-options">
+        <div class="ingestion-option" onclick="openPopup('slack')">
+            <i class="fab fa-slack"></i>
+            <p>Slack</p>
+        </div>
+        <div class="ingestion-option" onclick="openPopup('source')">
+            <i class="fas fa-link"></i>
+            <p>Source</p>
+        </div>
+        <div class="ingestion-option" onclick="openPopup('file')">
+            <i class="fas fa-file-upload"></i>
+            <p>File Upload</p>
         </div>
     </div>
 
-    <div id="sourcePopup" class="popup">
-        <div class="popup-content">
-            <span class="close" onclick="closePopup('source')">&times;</span>
-            <h2>Source Ingestion</h2>
-            <input type="text" id="sourceUrl" placeholder="Enter source URL">
-            <input type="text" id="sourceApiKey" placeholder="API Key">
-            <input type="text" id="sourceId" placeholder="ID">
-            <input type="text" id="sourceAccessKey" placeholder="Access Key (Optional)">
-            <textarea id="sourceMetadata" placeholder="Metadata (JSON format)"></textarea>
-            <button class="btn" onclick="addItem('source')">Add</button>
-        </div>
+    <div class="section-divider"></div>
+
+    <h2>Configured documents and sources list</h2>
+    <div class="table-container">
+        <table id="entriesTable">
+            <thead>
+            <tr>
+                <th>Link/File Name</th>
+                <th>Source</th>
+                <th>Metadata</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Table rows will be dynamically added here -->
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <div id="filePopup" class="popup">
-        <div class="popup-content">
-            <span class="close" onclick="closePopup('file')">&times;</span>
-            <h2>File Upload</h2>
-            <input type="file" id="fileUpload" multiple>
-            <textarea id="fileMetadata" placeholder="Metadata (JSON format)"></textarea>
-            <button class="btn" onclick="addItem('file')">Add</button>
-        </div>
+<!-- Popup Wizards -->
+<div class="popup" id="slackPopup">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('slack')">&times;</span>
+        <h2>Slack Ingestion</h2>
+        <input id="slackUrl" placeholder="Enter Slack channel URL" type="text">
+        <input id="slackApiKey" placeholder="API Key" type="text">
+        <input id="slackId" placeholder="ID" type="text">
+        <input id="slackAccessKey" placeholder="Access Key (Optional)" type="text">
+        <textarea id="slackMetadata" placeholder="Metadata (JSON format)"></textarea>
+        <button class="btn" onclick="addItem('slack')">Add</button>
     </div>
+</div>
+
+<div class="popup" id="sourcePopup">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('source')">&times;</span>
+        <h2>Source Ingestion</h2>
+        <input id="sourceUrl" placeholder="Enter source URL" type="text">
+        <input id="sourceApiKey" placeholder="API Key" type="text">
+        <input id="sourceId" placeholder="ID" type="text">
+        <input id="sourceAccessKey" placeholder="Access Key (Optional)" type="text">
+        <textarea id="sourceMetadata" placeholder="Metadata (JSON format)"></textarea>
+        <button class="btn" onclick="addItem('source')">Add</button>
+    </div>
+</div>
+
+<div class="popup" id="filePopup">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('file')">&times;</span>
+        <h2>File Upload</h2>
+        <input id="fileUpload" multiple type="file">
+        <textarea id="fileMetadata" placeholder="Metadata (JSON format)"></textarea>
+        <button class="btn" onclick="addItem('file')">Add</button>
+    </div>
+</div>
 
 
-    <script>
+<script>
 
-        let workspace = '';
+    let workspace = '';
 
-        function openPopup(type) {
-            document.getElementById(type + 'Popup').style.display = 'block';
+    function openPopup(type) {
+        document.getElementById(type + 'Popup').style.display = 'block';
+    }
+
+    function closePopup(type) {
+        document.getElementById(type + 'Popup').style.display = 'none';
+    }
+
+
+
+
+    async function addItem(type) {
+        if (!workspace) {
+            showPopupWarning('Please set a workspace before adding items.');
+            return;
         }
 
-        function closePopup(type) {
-            document.getElementById(type + 'Popup').style.display = 'none';
-        }
+        const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+        let name, source, metadata, additionaldetails;
 
-
-
-
-        async function addItem(type) {
-            if (!workspace) {
-                showPopupWarning('Please set a workspace before adding items.');
-                return;
-            }
-
-            const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
-            let name, source, metadata, additionaldetails;
-
-            if (type === 'file') {
-                const files = document.getElementById('fileUpload').files;
-                name = Array.from(files).map(f => f.name).join(', ');
-                source = 'file';
-                metadata = document.getElementById('fileMetadata').value;
-                additionaldetails = {
-                    "fileCount": files.length,
-                    "totalSize": Array.from(files).reduce((total, file) => total + file.size, 0)
-                };
-            } else {
-                name = document.getElementById(type + 'Url').value;
-                source = type;
-                metadata = document.getElementById(type + 'Metadata').value;
-                additionaldetails = JSON.parse({
-                    apiKey: document.getElementById(type + 'ApiKey').value,
-                    id: document.getElementById(type + 'Id').value,
-                    accessKey: document.getElementById(type + 'AccessKey').value
-                });
-            }
-
-            try {
-                // Parse metadata if it's a non-empty string, otherwise use an empty object
-                metadata = metadata.trim() ? JSON.parse(metadata) : {};
-                const requestBody = {
-                    name,
-                    source,
-                    workspace,
-                    metadata,
-                    additionaldetails
-                };
-                const response = await fetch('http://127.0.0.1:8000/ingestion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || 'Failed to add item');
-                }
-
-                const result = await response.json();
-                addRowToTable(result);
-                closePopup(type);
-            } catch (error) {
-                console.error('Error adding item:', error);
-                showPopupWarning('Failed to add item: ' + error.message);
-            }
-        }
-
-
-        function addRowToTable(item) {
-            const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
-            const row = table.insertRow();
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.source}</td>
-                <td>${JSON.stringify(item.metadata)}</td>
-                <td>
-                    <button class="remove-btn" onclick="deleteItem(${item.id}, this)">Remove</button>
-                    <button class="ingest-btn" onclick="ingestItem(this)" ${item.source !== 'file' ? 'disabled' : ''}>Ingest</button>
-                </td>
-            `;
-        }
-
-
-        async function deleteItem(id, button) {
-            try {
-                const response = await fetch(`http://127.0.0.1:8000/ingestion/${id}`, {
-                    method: 'DELETE',
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to delete item');
-                }
-
-                button.closest('tr').remove();
-            } catch (error) {
-                console.error('Error deleting item:', error);
-                showPopupWarning('Failed to delete item: ' + error.message);
-            }
-        }
-
-
-
-        async function ingestItem(button) {
-            const row = button.closest('tr');
-            const cells = row.cells;
-            const itemName = cells[0].textContent;
-            const itemType = cells[1].textContent;
-            const itemMetadata = cells[2].textContent;
-            const collectionName = document.getElementById('collectionNameInput').value.trim();
-
-
-            if (!collectionName) {
-                showPopupWarning('Please enter a collection name before ingesting.');
-                return;
-            }
-
-            const loadingOverlay = document.getElementById('loadingOverlay');
-
-            const data = {
-                collection_name: collectionName,
-                item_name: itemName,
-                item_type: itemType,
-                metadata: itemMetadata
+        if (type === 'file') {
+            const files = document.getElementById('fileUpload').files;
+            name = Array.from(files).map(f => f.name).join(', ');
+            source = 'file';
+            metadata = document.getElementById('fileMetadata').value;
+            additionaldetails = {
+                "fileCount": files.length,
+                "totalSize": Array.from(files).reduce((total, file) => total + file.size, 0)
             };
+        } else {
+            name = document.getElementById(type + 'Url').value;
+            source = type;
+            metadata = document.getElementById(type + 'Metadata').value;
+            additionaldetails = JSON.parse({
+                apiKey: document.getElementById(type + 'ApiKey').value,
+                id: document.getElementById(type + 'Id').value,
+                accessKey: document.getElementById(type + 'AccessKey').value
+            });
+        }
 
-            // add type-specific data
-            if (itemType === 'slack') {
-                data.url = document.getElementById('slackUrl').value;
-                data.api_key = document.getElementById('slackApiKey').value;
-                data.id = document.getElementById('slackId').value;
-                data.access_key = document.getElementById('slackAccessKey').value;
-            } else if (itemType === 'source') {
-                data.url = document.getElementById('sourceUrl').value;
-                data.api_key = document.getElementById('sourceApiKey').value;
-                data.id = document.getElementById('sourceId').value;
-                data.access_key = document.getElementById('sourceAccessKey').value;
-            } else if (itemType === 'file') {
+        try {
+            // Parse metadata if it's a non-empty string, otherwise use an empty object
+            metadata = metadata.trim() ? JSON.parse(metadata) : {};
+            const requestBody = {
+                name,
+                source,
+                workspace,
+                metadata,
+                additionaldetails
+            };
+            const response = await fetch('http://127.0.0.1:8000/ingestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to add item');
+            }
+
+            const result = await response.json();
+            addRowToTable(result);
+            closePopup(type);
+        } catch (error) {
+            console.error('Error adding item:', error);
+            showPopupWarning('Failed to add item: ' + error.message);
+        }
+    }
+
+
+    function addRowToTable(item) {
+        const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+        const row = table.insertRow();
+        row.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.source}</td>
+            <td>${JSON.stringify(item.metadata)}</td>
+            <td>
+                <button class="remove-btn" onclick="deleteItem(${item.id}, this)">Remove</button>
+                <button class="ingest-btn" onclick="ingestItem(this)" ${item.source !== 'file' ? 'disabled' : ''}>Ingest</button>
+            </td>
+        `;
+    }
+
+
+    async function deleteItem(id, button) {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/ingestion/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete item');
+            }
+
+            button.closest('tr').remove();
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            showPopupWarning('Failed to delete item: ' + error.message);
+        }
+    }
+
+
+
+    async function ingestItem(button) {
+        const row = button.closest('tr');
+        const cells = row.cells;
+        const itemName = cells[0].textContent;
+        const itemType = cells[1].textContent;
+        const itemMetadata = cells[2].textContent;
+        const collectionName = document.getElementById('collectionNameInput').value.trim();
+
+
+        if (!collectionName) {
+            showPopupWarning('Please enter a collection name before ingesting.');
+            return;
+        }
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        const data = {
+            collection_name: collectionName,
+            item_name: itemName,
+            item_type: itemType,
+            metadata: itemMetadata
+        };
+
+        // add type-specific data
+        if (itemType === 'slack') {
+            data.url = document.getElementById('slackUrl').value;
+            data.api_key = document.getElementById('slackApiKey').value;
+            data.id = document.getElementById('slackId').value;
+            data.access_key = document.getElementById('slackAccessKey').value;
+        } else if (itemType === 'source') {
+            data.url = document.getElementById('sourceUrl').value;
+            data.api_key = document.getElementById('sourceApiKey').value;
+            data.id = document.getElementById('sourceId').value;
+            data.access_key = document.getElementById('sourceAccessKey').value;
+        } else if (itemType === 'file') {
+            const fileInput = document.getElementById('fileUpload');
+            if (fileInput.files.length > 0) {
+                data.file = fileInput.files[0];
+            }
+        }
+
+        // handling uploading info to server
+        try {
+            button.disabled = true;
+            button.textContent = 'Ingesting...';
+            loadingOverlay.style.display = 'flex';
+
+
+            let response;
+
+            if (itemType === 'file') {
+                // Get the file input element
                 const fileInput = document.getElementById('fileUpload');
-                if (fileInput.files.length > 0) {
-                    data.file = fileInput.files[0];
-                }
-            }
 
-            // handling uploading info to server
-            try {
-                button.disabled = true;
-                button.textContent = 'Ingesting...';
-                loadingOverlay.style.display = 'flex';
-
-
-                let response;
-
-                if (itemType === 'file') {
-                    // Get the file input element
-                    const fileInput = document.getElementById('fileUpload');
-
-                    // Check if there's a file selected
-                    if (fileInput.files.length === 0) {
-                        throw new Error('No file selected for ingestion');
-                    }
-
-                    // Create FormData object
-                    const formData = new FormData();
-                    formData.append('file', fileInput.files[0]);
-                    formData.append('use_node_parser', 'true');
-                    formData.append('async_support', 'false');
-                    formData.append('collection_name', collectionName);
-                    formData.append('metadata', itemMetadata);
-
-                    // simulate a 5second loading time
-                    await new Promise(resolve => setTimeout(resolve, 5000));
-
-                    // send the file data to the server
-                    response = await fetch('http://localhost:8000/ingest/file', {
-                        method: 'POST',
-                        body: formData
-                    });
-                } else {
-                    const formData = new FormData();
-                    for (const key in data) {
-                        formData.append(key, data[key]);
-                    }
-
-                    const response = await fetch('http://localhost:63342/ingest', {
-                        method: 'POST',
-                        body: formData
-                    });
-
+                // Check if there's a file selected
+                if (fileInput.files.length === 0) {
+                    throw new Error('No file selected for ingestion');
                 }
 
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Ingestion successful:', result);
-                    row.remove();
-                } else {
-                    throw new Error('Ingestion failed');
-                }
-            } catch (error) {
-                console.error('Error during ingestion:', error);
-                showPopupWarning('An error occurred during ingestion. ['+error+'] Please try again.');
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Ingest';
-                loadingOverlay.style.display = 'none';
-            }
-        }
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('use_node_parser', 'true');
+                formData.append('async_support', 'false');
+                formData.append('collection_name', collectionName);
+                formData.append('metadata', itemMetadata);
 
-        // Load existing entries
-        async function loadExistingEntries() {
-            if (!workspace) {
-                showPopupWarning('Please set a workspace to load entries.');
-                return;
-            }
+                // simulate a 5second loading time
+                await new Promise(resolve => setTimeout(resolve, 5000));
 
-            try {
-                const response = await fetch(`http://127.0.0.1:8000/ingestion?workspace=${workspace}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch entries');
-                }
-
-                const entries = await response.json();
-                const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
-                table.innerHTML = ''; // Clear existing rows
-
-                entries.forEach(item => addRowToTable(item));
-            } catch (error) {
-                console.error('Error loading entries:', error);
-                showPopupWarning('Failed to load entries: ' + error.message);
-            }
-        }
-
-        // load existing entries when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            const queryParams = new URLSearchParams(window.location.search);
-            const propertyParam = queryParams.get('property');
-            if (propertyParam) {
-                workspace = propertyParam.toLowerCase().replace(/\s+/g, '_');
-                document.getElementById('collectionName').textContent = propertyParam;
-                document.getElementById('collectionNameInput').value = workspace;
-                loadExistingEntries();
-            } else {
-                showPopupWarning('Workspace not set. Please set a workspace to enable operations.');
-                disableOperations();
-            }
-
-            const infoButton = document.getElementById('infoButton');
-            const infoPopup = document.getElementById('infoPopup');
-            const closeInfoPopup = infoPopup.querySelector('.close-info-popup');
-
-            infoButton.addEventListener('click', function() {
-                infoPopup.style.display = 'block';
-            });
-
-            closeInfoPopup.addEventListener('click', function() {
-                infoPopup.style.display = 'none';
-            });
-
-            window.addEventListener('click', function(event) {
-                if (event.target == infoPopup) {
-                    infoPopup.style.display = 'none';
-                }
-            });
-
-            const infoTextElement = document.getElementById('connectorInfoText');
-            const currentUrl = new URL(window.location.href);
-            const qp = currentUrl.searchParams;
-            const settingsUrl = 'settings.html' + (qp.toString() ? '?' + qp.toString() : '');
-            infoTextElement.innerHTML = `Explore your active connectors below. Three pre-built options are available, or create custom connectors in <a href="${settingsUrl}">settings</a> for specialized data sources.`;
-
-            const qnaLink = document.getElementById('qnaLink');
-            const settingsLink = document.getElementById('settingsLink');
-
-            if (qp.toString()) {
-                qnaLink.href = `qna.html?${qp.toString()}`;
-                settingsLink.href = `settings.html?${qp.toString()}`;
-            }
-
-            const collectionNameDisplay = document.getElementById('collectionName');
-            const collectionNameInput = document.getElementById('collectionNameInput');
-
-            collectionNameDisplay.addEventListener('click', function() {
-                collectionNameDisplay.style.display = 'none';
-                collectionNameInput.style.display = 'inline-block';
-                collectionNameInput.value = collectionNameDisplay.textContent;
-                collectionNameInput.focus();
-            });
-
-            collectionNameInput.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    saveCollectionName();
-                }
-            });
-
-            collectionNameInput.addEventListener('blur', saveCollectionName);
-
-            function saveCollectionName() {
-                const newName = collectionNameInput.value.trim();
-                if (newName) {
-                    collectionNameDisplay.textContent = newName;
-                    workspace = newName.toLowerCase().replace(/\s+/g, '_');
-                    collectionNameInput.style.display = 'none';
-                    collectionNameDisplay.style.display = 'inline-block';
-                    loadExistingEntries();
-                    enableOperations();
-                } else {
-                    showPopupWarning('Please enter a valid workspace name.');
-                }
-            }
-
-            function enableOperations() {
-                document.querySelectorAll('.ingestion-option, .btn, .remove-btn, .ingest-btn').forEach(el => {
-                    el.disabled = false;
+                // send the file data to the server
+                response = await fetch('http://localhost:8000/ingest/file', {
+                    method: 'POST',
+                    body: formData
                 });
+            } else {
+                const formData = new FormData();
+                for (const key in data) {
+                    formData.append(key, data[key]);
+                }
+
+                const response = await fetch('http://localhost:63342/ingest', {
+                    method: 'POST',
+                    body: formData
+                });
+
+            }
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Ingestion successful:', result);
+                row.remove();
+            } else {
+                throw new Error('Ingestion failed');
+            }
+        } catch (error) {
+            console.error('Error during ingestion:', error);
+            showPopupWarning('An error occurred during ingestion. ['+error+'] Please try again.');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Ingest';
+            loadingOverlay.style.display = 'none';
+        }
+    }
+
+    // Load existing entries
+    async function loadExistingEntries() {
+        if (!workspace) {
+            showPopupWarning('Please set a workspace to load entries.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/ingestion?workspace=${workspace}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch entries');
+            }
+
+            const entries = await response.json();
+            const table = document.getElementById('entriesTable').getElementsByTagName('tbody')[0];
+            table.innerHTML = ''; // Clear existing rows
+
+            entries.forEach(item => addRowToTable(item));
+        } catch (error) {
+            console.error('Error loading entries:', error);
+            showPopupWarning('Failed to load entries: ' + error.message);
+        }
+    }
+
+    // load existing entries when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const queryParams = new URLSearchParams(window.location.search);
+        const propertyParam = queryParams.get('property');
+        if (propertyParam) {
+            workspace = propertyParam.toLowerCase().replace(/\s+/g, '_');
+            document.getElementById('collectionName').textContent = propertyParam;
+            document.getElementById('collectionNameInput').value = workspace;
+            loadExistingEntries();
+        } else {
+            showPopupWarning('Workspace not set. Please set a workspace to enable operations.');
+            disableOperations();
+        }
+
+        const infoButton = document.getElementById('infoButton');
+        const infoPopup = document.getElementById('infoPopup');
+        const closeInfoPopup = infoPopup.querySelector('.close-info-popup');
+
+        infoButton.addEventListener('click', function() {
+            infoPopup.style.display = 'block';
+        });
+
+        closeInfoPopup.addEventListener('click', function() {
+            infoPopup.style.display = 'none';
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target == infoPopup) {
+                infoPopup.style.display = 'none';
             }
         });
 
+        const infoTextElement = document.getElementById('connectorInfoText');
+        const currentUrl = new URL(window.location.href);
+        const qp = currentUrl.searchParams;
+        const settingsUrl = 'settings.html' + (qp.toString() ? '?' + qp.toString() : '');
+        infoTextElement.innerHTML = `Explore your active connectors below. Three pre-built options are available, or create custom connectors in <a href="${settingsUrl}">settings</a> for specialized data sources.`;
 
+        const qnaLink = document.getElementById('qnaLink');
+        const settingsLink = document.getElementById('settingsLink');
 
+        if (qp.toString()) {
+            qnaLink.href = `qna.html?${qp.toString()}`;
+            settingsLink.href = `settings.html?${qp.toString()}`;
+        }
 
+        const collectionNameDisplay = document.getElementById('collectionName');
+        const collectionNameInput = document.getElementById('collectionNameInput');
 
+        collectionNameDisplay.addEventListener('click', function() {
+            collectionNameDisplay.style.display = 'none';
+            collectionNameInput.style.display = 'inline-block';
+            collectionNameInput.value = collectionNameDisplay.textContent;
+            collectionNameInput.focus();
+        });
 
+        collectionNameInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                saveCollectionName();
+            }
+        });
 
+        collectionNameInput.addEventListener('blur', saveCollectionName);
 
+        function saveCollectionName() {
+            const newName = collectionNameInput.value.trim();
+            if (newName) {
+                collectionNameDisplay.textContent = newName;
+                workspace = newName.toLowerCase().replace(/\s+/g, '_');
+                collectionNameInput.style.display = 'none';
+                collectionNameDisplay.style.display = 'inline-block';
+                loadExistingEntries();
+                enableOperations();
+            } else {
+                showPopupWarning('Please enter a valid workspace name.');
+            }
+        }
 
-
-        function disableOperations() {
+        function enableOperations() {
             document.querySelectorAll('.ingestion-option, .btn, .remove-btn, .ingest-btn').forEach(el => {
-                el.disabled = true;
+                el.disabled = false;
             });
         }
+    });
 
-        function showPopupWarning(message) {
-            const popup = document.createElement('div');
-            popup.classList.add('popup-warning'); // add a class for styling
-            popup.textContent = message;
 
-            // create a container element for better positioning (optional)
-            const popupContainer = document.createElement('div');
-            popupContainer.classList.add('popup-container'); // add a class for styling
-            popupContainer.appendChild(popup);
 
-            document.body.appendChild(popupContainer); // append the container
 
-            const menuBarHeight = document.getElementById('menuBar').offsetHeight;
 
-            // Centering the text inside the popup
-            popup.style.display = 'flex';
-            popup.style.justifyContent = 'center';
-            popup.style.alignItems = 'center';
-            //popup.style.height = '100%'; ~Don't even try this
 
-            // add some styles using inline styles (not recommended)
-            popup.style.backgroundColor = '#A60000';
-            popup.style.color = 'white';
-            popup.style.padding = '10px 20px';
-            popup.style.position = 'fixed'; // make it fixed on the screen
-            popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
-            popup.style.width = '100%'; // span the full width of the screen
-            popup.style.left = '0'; // align with the screen's left edge
-            popup.style.zIndex = '1000';
 
-            setTimeout(() => {
-              document.body.removeChild(popupContainer); // remove the container
-            }, 5000); // hide the popup after 5 seconds
-        }
-    </script>
+
+
+
+    function disableOperations() {
+        document.querySelectorAll('.ingestion-option, .btn, .remove-btn, .ingest-btn').forEach(el => {
+            el.disabled = true;
+        });
+    }
+
+    function showPopupWarning(message) {
+        const popup = document.createElement('div');
+        popup.classList.add('popup-warning'); // add a class for styling
+        popup.textContent = message;
+
+        // create a container element for better positioning (optional)
+        const popupContainer = document.createElement('div');
+        popupContainer.classList.add('popup-container'); // add a class for styling
+        popupContainer.appendChild(popup);
+
+        document.body.appendChild(popupContainer); // append the container
+
+        const menuBarHeight = document.getElementById('menuBar').offsetHeight;
+
+        // Centering the text inside the popup
+        popup.style.display = 'flex';
+        popup.style.justifyContent = 'center';
+        popup.style.alignItems = 'center';
+        //popup.style.height = '100%'; ~Don't even try this
+
+        // add some styles using inline styles (not recommended)
+        popup.style.backgroundColor = '#A60000';
+        popup.style.color = 'white';
+        popup.style.padding = '10px 20px';
+        popup.style.position = 'fixed'; // make it fixed on the screen
+        popup.style.top = menuBarHeight + 'px'; // position it just below the menu bar
+        popup.style.width = '100%'; // span the full width of the screen
+        popup.style.left = '0'; // align with the screen's left edge
+        popup.style.zIndex = '1000';
+
+        setTimeout(() => {
+          document.body.removeChild(popupContainer); // remove the container
+        }, 5000); // hide the popup after 5 seconds
+    }
+</script>
 </body>
 </html>

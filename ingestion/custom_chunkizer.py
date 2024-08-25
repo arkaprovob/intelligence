@@ -1,8 +1,9 @@
-from typing import List, Sequence, Any
-from llama_index.core.schema import Document, NodeRelationship, RelatedNodeInfo, BaseNode
-from llama_index.core.node_parser.interface import NodeParser
-from llama_index.core.bridge.pydantic import Field
 import re
+from typing import List, Sequence, Any
+
+from llama_index.core.bridge.pydantic import Field
+from llama_index.core.node_parser.interface import NodeParser
+from llama_index.core.schema import Document, NodeRelationship, RelatedNodeInfo, BaseNode
 
 
 class ChunkNodeParser(NodeParser):

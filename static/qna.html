@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Q&A</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -480,459 +480,473 @@
     </style>
 </head>
 <body>
-    <div class="menu-bar" id="menuBar">
-        <a href="home.html"><i class="fas fa-home"></i> Home</a>
-        <a href="ingestion.html" id="ingestionLink"><i class="fa-solid fa-lungs-virus"></i> Ingestion</a>
-    </div>
+<div class="menu-bar" id="menuBar">
+    <a href="home.html"><i class="fas fa-home"></i> Home</a>
+    <a href="ingestion.html" id="ingestionLink"><i class="fa-solid fa-lungs-virus"></i> Ingestion</a>
+</div>
 
-    <div id="feedbackModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3>Would you like to add a description for your feedback?</h3>
-            <textarea id="feedbackDescription" rows="4" placeholder="Optional: Describe your feedback here"></textarea>
-            <div class="modal-buttons">
-                <button id="cancelFeedback">Cancel</button>
-                <button id="submitFeedback">Submit</button>
-            </div>
+<div class="modal" id="feedbackModal" style="display: none;">
+    <div class="modal-content">
+        <h3>Would you like to add a description for your feedback?</h3>
+        <textarea id="feedbackDescription" placeholder="Optional: Describe your feedback here" rows="4"></textarea>
+        <div class="modal-buttons">
+            <button id="cancelFeedback">Cancel</button>
+            <button id="submitFeedback">Submit</button>
         </div>
     </div>
+</div>
 
-    <div class="content-wrapper">
-        <div class="container">
-            <h2><span id="interacting-with">Workspace </span><span id="property-value"></span></h2>
+<div class="content-wrapper">
+    <div class="container">
+        <h2><span id="interacting-with">Workspace </span><span id="property-value"></span></h2>
 
-            <div id="expectationsPopup" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>🚀 Welcome to the DocsBot's AI Rollercoaster! 🎢</h3>
-                    </div>
-                    <div id="expectations" class="expectations">
-                        <p>Buckle up, buttercup! You're about to embark on a wild ride through the land of AI. Here's your survival guide:</p>
-                        <ul>
-                            <li>🐹 <strong>Hamster-Powered:</strong> We're running on CPUs, not supercomputers. If you hear squeaking, that's normal.</li>
-                            <li>🎛️ <strong>More Tweaks Than a DJ:</strong> We've adjusted so many parameters, even we're confused.</li>
-                            <li>🧑‍🤝‍🧑 <strong>Exclusive Club:</strong> Only three users at a time. The rest get to enjoy our state-of-the-art queueing system (aka digital twiddling thumbs).</li>
-                            <li>🐌 <strong>Slow and Steady:</strong> Responses might be slower than your grandma's dial-up. Perfect time for a snack!</li>
-                            <li>✂️ <strong>Bite-Sized Answers:</strong> We have a reply length limit. It's like Twitter, but for AI.</li>
-                            <li>🦜 <strong>Confused Parrot Mode:</strong> Our cache system might repeat things. It's not déjà vu, it's just... cache.</li>
-                        </ul>
-                        <p>Remember: Patience is a virtue, and a sense of humor is your best friend here!</p>
-                    </div>
-                    <button id="closeExpectations" class="close-button">I solemnly swear that I'm ready for this joyride!</button>
+        <div class="modal" id="expectationsPopup">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🚀 Welcome to the DocsBot's AI Rollercoaster! 🎢</h3>
                 </div>
+                <div class="expectations" id="expectations">
+                    <p>Buckle up, buttercup! You're about to embark on a wild ride through the land of AI. Here's your
+                        survival guide:</p>
+                    <ul>
+                        <li>🐹 <strong>Hamster-Powered:</strong> We're running on CPUs, not supercomputers. If you hear
+                            squeaking, that's normal.
+                        </li>
+                        <li>🎛️ <strong>More Tweaks Than a DJ:</strong> We've adjusted so many parameters, even we're
+                            confused.
+                        </li>
+                        <li>🧑‍🤝‍🧑 <strong>Exclusive Club:</strong> Only three users at a time. The rest get to enjoy our
+                            state-of-the-art queueing system (aka digital twiddling thumbs).
+                        </li>
+                        <li>🐌 <strong>Slow and Steady:</strong> Responses might be slower than your grandma's dial-up.
+                            Perfect time for a snack!
+                        </li>
+                        <li>✂️ <strong>Bite-Sized Answers:</strong> We have a reply length limit. It's like Twitter, but
+                            for AI.
+                        </li>
+                        <li>🦜 <strong>Confused Parrot Mode:</strong> Our cache system might repeat things. It's not déjà
+                            vu, it's just... cache.
+                        </li>
+                    </ul>
+                    <p>Remember: Patience is a virtue, and a sense of humor is your best friend here!</p>
+                </div>
+                <button class="close-button" id="closeExpectations">I solemnly swear that I'm ready for this joyride!
+                </button>
             </div>
-
-
-            <div id="chat-history"></div>
-            <form id="questionForm">
-                <input type="text" id="questionInput" class="questionInput" placeholder="Enter your question here">
-                <button class="sbmt" type="submit"><i class="fas fa-paper-plane"></i></button>
-            </form>
         </div>
+
+
+        <div id="chat-history"></div>
+        <form id="questionForm">
+            <input class="questionInput" id="questionInput" placeholder="Enter your question here" type="text">
+            <button class="sbmt" type="submit"><i class="fas fa-paper-plane"></i></button>
+        </form>
     </div>
+</div>
 
-    <script>
-        const questionForm = document.getElementById('questionForm');
-        const questionInput = document.getElementById('questionInput');
-        const submitButton = document.querySelector('.sbmt');
+<script>
+    const questionForm = document.getElementById('questionForm');
+    const questionInput = document.getElementById('questionInput');
+    const submitButton = document.querySelector('.sbmt');
 
-        let isStreaming = false;
-        let startTime;
-        let queuedMessageElement = null;
+    let isStreaming = false;
+    let startTime;
+    let queuedMessageElement = null;
 
-        function updateSubmitButtonState() {
-            submitButton.disabled = !questionInput.value.trim() || isStreaming;
+    function updateSubmitButtonState() {
+        submitButton.disabled = !questionInput.value.trim() || isStreaming;
+    }
+
+    questionInput.addEventListener('input', updateSubmitButtonState);
+
+    questionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const question = questionInput.value.trim();
+
+        if (!question) {
+            showPopupWarning("Error: Question cannot be empty.");
+            return;
         }
 
-        questionInput.addEventListener('input', updateSubmitButtonState);
+        addMessage(question, 'user-message');
+        questionInput.value = '';
 
-        questionForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const question = questionInput.value.trim();
+        const encodedQuestion = encodeURIComponent(question);
 
-            if (!question) {
-                showPopupWarning("Error: Question cannot be empty.");
-                return;
-            }
+        // Get current URL parameters
+        const currentUrl = new URL(window.location.href);
+        const params = new URLSearchParams(currentUrl.search);
 
-            addMessage(question, 'user-message');
-            questionInput.value = '';
+        // Ensure the 'property' parameter exists (todo: refactor 'property' to 'workspace')
+        if (!params.has('property')) {
+            showPopupWarning("Error: 'property' parameter is missing from the URL.");
+            return;
+        }
 
-            const encodedQuestion = encodeURIComponent(question);
+        // transform the property param replace any space or plus sign with underscore and convert to lowercase
+        transformed_property = params.get('property').replace(/[\s\+]/g, '_').toLowerCase();
 
-            // Get current URL parameters
-            const currentUrl = new URL(window.location.href);
-            const params = new URLSearchParams(currentUrl.search);
+        // Construct the request URL with both query and property parameters
+        const requestURL = `http://localhost:8000/query-stream/?query=${encodedQuestion}&workspace=${transformed_property}`;
 
-            // Ensure the 'property' parameter exists (todo: refactor 'property' to 'workspace')
-            if (!params.has('property')) {
-                showPopupWarning("Error: 'property' parameter is missing from the URL.");
-                return;
-            }
+        if (window.eventSource) {
+            window.eventSource.close();
+        }
 
-            // transform the property param replace any space or plus sign with underscore and convert to lowercase
-            transformed_property = params.get('property').replace(/[\s\+]/g, '_').toLowerCase();
+        isStreaming = true;
+        updateSubmitButtonState();
 
-            // Construct the request URL with both query and property parameters
-            const requestURL = `http://localhost:8000/query-stream/?query=${encodedQuestion}&workspace=${transformed_property}`;
+        window.eventSource = new EventSource(requestURL);
+        let fullText = '';
+        startTime = Date.now();
 
-            if (window.eventSource) {
-                window.eventSource.close();
-            }
+        window.eventSource.onopen = function(event) {
+            console.log("Connection opened");
+        };
 
-            isStreaming = true;
-            updateSubmitButtonState();
+        window.eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+                if (data.queued) {
+                    showQueuedMessage();
+                } else {
+                if (queuedMessageElement) {
+                    removeQueuedMessage();
+                }
+                if (data.text) {
+                    if (!startTime) {
+                        startTime = Date.now();
+                    }
+                    fullText += data.text;
 
-            window.eventSource = new EventSource(requestURL);
-            let fullText = '';
-            startTime = Date.now();
+                    no_match_found_array = [
+                        "Well, this is awkward. Your question just stumped my entire knowledge base. It's either too clever or we need to have a serious talk with my teachers.",
+                        "Hmm... My crystal ball is coming up foggy on this one. Maybe try shaking it and asking again?",
+                        "Error 42: The meaning of life, the universe, and your question remain a mystery. Care to rephrase and see if we can solve at least one of those?",
+                        "Looks like your question is playing hard to get. Let's try a different approach - maybe compliment it and ask again?",
+                        "Uh-oh, I think we've wandered into uncharted territory. Want to be explorers and rephrase that question to map this new land?",
+                        "Your question just broke the internet! Okay, not really, but it did leave my database scratching its virtual head. Shall we give it another go?"
+                    ]
 
-            window.eventSource.onopen = function(event) {
-                console.log("Connection opened");
-            };
+                    const randomIndex = Math.floor(Math.random() * no_match_found_array.length);
 
-            window.eventSource.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                    if (data.queued) {
-                        showQueuedMessage();
+                    if (fullText.includes("Empty Response")) {
+                        fullText = no_match_found_array[randomIndex];
+                    }
+                    updateBotMessage(question,fullText);
+                }
+                else if (data.done) {
+                    console.log("Stream ended");
+                    window.eventSource.close();
+                    isStreaming = false;
+                    updateSubmitButtonState();
+
+                    if (data.time_taken) {
+                        showTimeTaken(data.time_taken);
                     } else {
-                    if (queuedMessageElement) {
-                        removeQueuedMessage();
+                        const timeTaken = (Date.now() - startTime) / 1000;
+                        showTimeTaken(timeTaken.toFixed(2));
                     }
-                    if (data.text) {
-                        if (!startTime) {
-                            startTime = Date.now();
-                        }
-                        fullText += data.text;
-
-                        no_match_found_array = [
-                            "Well, this is awkward. Your question just stumped my entire knowledge base. It's either too clever or we need to have a serious talk with my teachers.",
-                            "Hmm... My crystal ball is coming up foggy on this one. Maybe try shaking it and asking again?",
-                            "Error 42: The meaning of life, the universe, and your question remain a mystery. Care to rephrase and see if we can solve at least one of those?",
-                            "Looks like your question is playing hard to get. Let's try a different approach - maybe compliment it and ask again?",
-                            "Uh-oh, I think we've wandered into uncharted territory. Want to be explorers and rephrase that question to map this new land?",
-                            "Your question just broke the internet! Okay, not really, but it did leave my database scratching its virtual head. Shall we give it another go?"
-                        ]
-
-                        const randomIndex = Math.floor(Math.random() * no_match_found_array.length);
-
-                        if (fullText.includes("Empty Response")) {
-                            fullText = no_match_found_array[randomIndex];
-                        }
-                        updateBotMessage(question,fullText);
-                    }
-                    else if (data.done) {
-                        console.log("Stream ended");
-                        window.eventSource.close();
-                        isStreaming = false;
-                        updateSubmitButtonState();
-
-                        if (data.time_taken) {
-                            showTimeTaken(data.time_taken);
-                        } else {
-                            const timeTaken = (Date.now() - startTime) / 1000;
-                            showTimeTaken(timeTaken.toFixed(2));
-                        }
-                        if (data.source === 'llm') {
-                            // post the response to /cache endpoint to store the response in the cache, and if anything goes wrong, show a warning popup
-                            fetch('http://localhost:8000/cache/', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    question: question,
-                                    response: fullText,
-                                    workspace: transformed_property
-                                })
-                            }).then(response => {
-                                if (!response.ok) {
-                                    showPopupWarning('Error: Failed to store response in cache.');
-                                }
-                                console.log('Response cached successfully');
-                            }).catch(error => {
-                                console.error('Failed to store response in cache:', error);
+                    if (data.source === 'llm') {
+                        // post the response to /cache endpoint to store the response in the cache, and if anything goes wrong, show a warning popup
+                        fetch('http://localhost:8000/cache/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                question: question,
+                                response: fullText,
+                                workspace: transformed_property
+                            })
+                        }).then(response => {
+                            if (!response.ok) {
                                 showPopupWarning('Error: Failed to store response in cache.');
-                            });
-                        } else {
-                            console.log('This response came from the cache', 'bot-message');
-                    }
-
-                        //showPopupWarning('Streaming complete post the query from here','#5d6d7e')
-                        postFeedback(question, fullText, 0, 'anonymous', 'logging')
-                    }
+                            }
+                            console.log('Response cached successfully');
+                        }).catch(error => {
+                            console.error('Failed to store response in cache:', error);
+                            showPopupWarning('Error: Failed to store response in cache.');
+                        });
+                    } else {
+                        console.log('This response came from the cache', 'bot-message');
                 }
-            };
 
-            window.eventSource.onerror = function(error) {
-                console.error('EventSource failed:', error);
-                showPopupWarning('Error: Failed to get response from server.');
-                addMessage('Error: Failed to get response from server.', 'bot-message error');
-                window.eventSource.close();
-                // Remove the event source to prevent reconnection attempts
-                window.eventSource = null;
-                isStreaming = false;
-                updateSubmitButtonState();
-            };
-        });
-
-            function showQueuedMessage() {
-                if (!queuedMessageElement) {
-                    const chatHistory = document.getElementById('chat-history');
-                    queuedMessageElement = document.createElement('div');
-                    queuedMessageElement.classList.add('queued-message');
-                    queuedMessageElement.textContent = "Your request is queued due to no available LLM connection. It will be processed as soon as a connection becomes available.";
-                    queuedMessageElement.style.backgroundColor = '#FFF3CD';
-                    queuedMessageElement.style.color = '#856404';
-                    queuedMessageElement.style.padding = '10px';
-                    queuedMessageElement.style.borderRadius = '5px';
-                    queuedMessageElement.style.marginBottom = '10px';
-                    chatHistory.appendChild(queuedMessageElement);
-                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                    //showPopupWarning('Streaming complete post the query from here','#5d6d7e')
+                    postFeedback(question, fullText, 0, 'anonymous', 'logging')
                 }
             }
+        };
 
-        function removeQueuedMessage() {
-            if (queuedMessageElement) {
-                queuedMessageElement.remove();
-                queuedMessageElement = null;
-            }
-        }
-
-        function addMessage(text, className) {
-            const chatHistory = document.getElementById('chat-history');
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', className);
-            messageElement.textContent = text;
-            chatHistory.appendChild(messageElement);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-
-            if (className === 'user-message') {
-                showTypingIndicator();
-            }
-        }
-
-        function showTypingIndicator() {
-            const chatHistory = document.getElementById('chat-history');
-            const typingIndicator = document.createElement('div');
-            typingIndicator.classList.add('typing-indicator');
-            typingIndicator.innerHTML = '<span></span><span></span><span></span>';
-            chatHistory.appendChild(typingIndicator);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            const chatHistory = document.getElementById('chat-history');
-            const typingIndicator = chatHistory.querySelector('.typing-indicator');
-            if (typingIndicator) {
-                chatHistory.removeChild(typingIndicator);
-            }
-        }
-
-        function updateBotMessage(question, text) {
-            hideTypingIndicator();
-            const chatHistory = document.getElementById('chat-history');
-            let botMessage = chatHistory.querySelector('.bot-message:last-child');
-
-            if (!botMessage) {
-                botMessage = document.createElement('div');
-                botMessage.classList.add('message', 'bot-message');
-                chatHistory.appendChild(botMessage);
-            }
-
-            // Use marked to parse Markdown
-            botMessage.innerHTML = marked.parse(text);
-
-
-            // up vote
-            const upvoteButton = document.createElement('button');
-            upvoteButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-            upvoteButton.classList.add('upvote-button');
-            upvoteButton.addEventListener('click', function() {
-                showFeedbackModal(question, text, 1);
-            });
-            botMessage.appendChild(upvoteButton);
-
-
-            // down vote
-            const downvoteButton = document.createElement('button');
-            downvoteButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-            downvoteButton.classList.add('downvote-button');
-            downvoteButton.addEventListener('click', function() {
-                showFeedbackModal(question, text, -1);
-            });
-            botMessage.appendChild(downvoteButton);
-
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-
-        function showFeedbackModal(question, answer, feedbackValue) {
-            const modal = document.getElementById('feedbackModal');
-            const submitBtn = document.getElementById('submitFeedback');
-            const cancelBtn = document.getElementById('cancelFeedback');
-            const descriptionArea = document.getElementById('feedbackDescription');
-
-            modal.style.display = 'block';
-            descriptionArea.value = ''; // Clear previous input
-
-            submitBtn.onclick = function() {
-                const description = descriptionArea.value.trim();
-                postFeedback(question, answer, feedbackValue, "anonymous", description);
-                modal.style.display = 'none';
-                showFeedbackConfirmation(feedbackValue);
-            };
-
-            cancelBtn.onclick = function() {
-                modal.style.display = 'none';
-            };
-
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            };
-        }
-
-        function showFeedbackConfirmation(feedbackValue) {
-            if (feedbackValue === 1) {
-                showPopupWarning('Thanks for the positive feedback! Our AI is doing a little happy dance right now.', '#28B463');
-            } else {
-                showPopupWarning('Thanks for the feedback! Our AI is feeling a bit sheepish. Why not try rephrasing your question? Maybe throw in a knock-knock joke for good measure!', '#f39c12');
-            }
-        }
-
-
-        // Function to post feedback
-        function postFeedback(question, answer, feedbackValue, user, description) {
-            fetch('http://localhost:8000/feedback/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    question: question,
-                    answer: answer,
-                    feedback: feedbackValue,
-                    user: user,
-                    description: description
-                })
-            }).then(response => {
-                if (!response.ok) {
-                    showPopupWarning('Error: Failed to submit feedback.');
-                }
-                console.log('Feedback recorded successfully');
-            }).catch(error => {
-                console.error('Failed to store feedback:', error);
-                showPopupWarning('Error: Failed to store feedback.');
-            });
-        }
-
-        function showTimeTaken(time) {
-            const chatHistory = document.getElementById('chat-history');
-            const timeElement = document.createElement('div');
-            timeElement.classList.add('time-taken');
-            timeElement.textContent = `Time taken: ${time} seconds`;
-            chatHistory.appendChild(timeElement);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentUrl = new URL(window.location.href);
-            const qp = currentUrl.searchParams;
-            const ingestionLink = document.getElementById('ingestionLink');
-
-            const propertyValue = qp.get('property') || 'Unknown Property';
-            document.getElementById('property-value').textContent = propertyValue;
-
-            if (qp.toString()) {
-                ingestionLink.href = `ingestion.html?${qp.toString()}`;
-            }
-
-            // Initial state
+        window.eventSource.onerror = function(error) {
+            console.error('EventSource failed:', error);
+            showPopupWarning('Error: Failed to get response from server.');
+            addMessage('Error: Failed to get response from server.', 'bot-message error');
+            window.eventSource.close();
+            // Remove the event source to prevent reconnection attempts
+            window.eventSource = null;
+            isStreaming = false;
             updateSubmitButtonState();
+        };
+    });
 
-            // Show expectations popup
-            const expectationsPopup = document.getElementById('expectationsPopup');
-            expectationsPopup.style.display = 'block';
-
-            // Handle close button
-            const closeButton = document.getElementById('closeExpectations');
-            closeButton.addEventListener('click', function() {
-                expectationsPopup.style.display = 'none';
-                showConfetti();
-                setTimeout(() => {
-                    showPopupWarning("Woohoo! You're officially prepared for this AI adventure. May the odds be ever in your favor!", '#28B463');
-                }, 1000);
-            });
-        });
-
-
-        function showConfetti() {
-            const duration = 3 * 1000;
-            const end = Date.now() + duration;
-
-            (function frame() {
-                confetti({
-                    particleCount: 7,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
-                    colors: ['#ee0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc']
-                });
-                confetti({
-                    particleCount: 7,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
-                    colors: ['#ee0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc']
-                });
-
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            }());
-        }
-
-
-
-        let activePopup = null;
-        function showPopupWarning(message, color='#A60000') {
-            if (activePopup) {
-                document.body.removeChild(activePopup);
+        function showQueuedMessage() {
+            if (!queuedMessageElement) {
+                const chatHistory = document.getElementById('chat-history');
+                queuedMessageElement = document.createElement('div');
+                queuedMessageElement.classList.add('queued-message');
+                queuedMessageElement.textContent = "Your request is queued due to no available LLM connection. It will be processed as soon as a connection becomes available.";
+                queuedMessageElement.style.backgroundColor = '#FFF3CD';
+                queuedMessageElement.style.color = '#856404';
+                queuedMessageElement.style.padding = '10px';
+                queuedMessageElement.style.borderRadius = '5px';
+                queuedMessageElement.style.marginBottom = '10px';
+                chatHistory.appendChild(queuedMessageElement);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
             }
-
-            const popup = document.createElement('div');
-            popup.classList.add('popup-warning');
-            popup.textContent = message;
-
-            const popupContainer = document.createElement('div');
-            popupContainer.classList.add('popup-container');
-            popupContainer.appendChild(popup);
-
-            document.body.appendChild(popupContainer);
-            activePopup = popupContainer;
-
-            const menuBarHeight = document.getElementById('menuBar').offsetHeight;
-
-            popup.style.display = 'flex';
-            popup.style.justifyContent = 'center';
-            popup.style.alignItems = 'center';
-            popup.style.backgroundColor = color;
-            popup.style.color = 'white';
-            popup.style.padding = '10px 20px';
-            popup.style.position = 'fixed';
-            popup.style.top = menuBarHeight + 'px';
-            popup.style.width = '100%';
-            popup.style.left = '0';
-            popup.style.zIndex = '1000';
-
-            setTimeout(() => {
-                if (activePopup === popupContainer) {
-                    document.body.removeChild(popupContainer);
-                    activePopup = null;
-                }
-            }, 5000);
         }
-    </script>
+
+    function removeQueuedMessage() {
+        if (queuedMessageElement) {
+            queuedMessageElement.remove();
+            queuedMessageElement = null;
+        }
+    }
+
+    function addMessage(text, className) {
+        const chatHistory = document.getElementById('chat-history');
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', className);
+        messageElement.textContent = text;
+        chatHistory.appendChild(messageElement);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        if (className === 'user-message') {
+            showTypingIndicator();
+        }
+    }
+
+    function showTypingIndicator() {
+        const chatHistory = document.getElementById('chat-history');
+        const typingIndicator = document.createElement('div');
+        typingIndicator.classList.add('typing-indicator');
+        typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+        chatHistory.appendChild(typingIndicator);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        const chatHistory = document.getElementById('chat-history');
+        const typingIndicator = chatHistory.querySelector('.typing-indicator');
+        if (typingIndicator) {
+            chatHistory.removeChild(typingIndicator);
+        }
+    }
+
+    function updateBotMessage(question, text) {
+        hideTypingIndicator();
+        const chatHistory = document.getElementById('chat-history');
+        let botMessage = chatHistory.querySelector('.bot-message:last-child');
+
+        if (!botMessage) {
+            botMessage = document.createElement('div');
+            botMessage.classList.add('message', 'bot-message');
+            chatHistory.appendChild(botMessage);
+        }
+
+        // Use marked to parse Markdown
+        botMessage.innerHTML = marked.parse(text);
+
+
+        // up vote
+        const upvoteButton = document.createElement('button');
+        upvoteButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+        upvoteButton.classList.add('upvote-button');
+        upvoteButton.addEventListener('click', function() {
+            showFeedbackModal(question, text, 1);
+        });
+        botMessage.appendChild(upvoteButton);
+
+
+        // down vote
+        const downvoteButton = document.createElement('button');
+        downvoteButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
+        downvoteButton.classList.add('downvote-button');
+        downvoteButton.addEventListener('click', function() {
+            showFeedbackModal(question, text, -1);
+        });
+        botMessage.appendChild(downvoteButton);
+
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+
+    function showFeedbackModal(question, answer, feedbackValue) {
+        const modal = document.getElementById('feedbackModal');
+        const submitBtn = document.getElementById('submitFeedback');
+        const cancelBtn = document.getElementById('cancelFeedback');
+        const descriptionArea = document.getElementById('feedbackDescription');
+
+        modal.style.display = 'block';
+        descriptionArea.value = ''; // Clear previous input
+
+        submitBtn.onclick = function() {
+            const description = descriptionArea.value.trim();
+            postFeedback(question, answer, feedbackValue, "anonymous", description);
+            modal.style.display = 'none';
+            showFeedbackConfirmation(feedbackValue);
+        };
+
+        cancelBtn.onclick = function() {
+            modal.style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+    }
+
+    function showFeedbackConfirmation(feedbackValue) {
+        if (feedbackValue === 1) {
+            showPopupWarning('Thanks for the positive feedback! Our AI is doing a little happy dance right now.', '#28B463');
+        } else {
+            showPopupWarning('Thanks for the feedback! Our AI is feeling a bit sheepish. Why not try rephrasing your question? Maybe throw in a knock-knock joke for good measure!', '#f39c12');
+        }
+    }
+
+
+    // Function to post feedback
+    function postFeedback(question, answer, feedbackValue, user, description) {
+        fetch('http://localhost:8000/feedback/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                question: question,
+                answer: answer,
+                feedback: feedbackValue,
+                user: user,
+                description: description
+            })
+        }).then(response => {
+            if (!response.ok) {
+                showPopupWarning('Error: Failed to submit feedback.');
+            }
+            console.log('Feedback recorded successfully');
+        }).catch(error => {
+            console.error('Failed to store feedback:', error);
+            showPopupWarning('Error: Failed to store feedback.');
+        });
+    }
+
+    function showTimeTaken(time) {
+        const chatHistory = document.getElementById('chat-history');
+        const timeElement = document.createElement('div');
+        timeElement.classList.add('time-taken');
+        timeElement.textContent = `Time taken: ${time} seconds`;
+        chatHistory.appendChild(timeElement);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUrl = new URL(window.location.href);
+        const qp = currentUrl.searchParams;
+        const ingestionLink = document.getElementById('ingestionLink');
+
+        const propertyValue = qp.get('property') || 'Unknown Property';
+        document.getElementById('property-value').textContent = propertyValue;
+
+        if (qp.toString()) {
+            ingestionLink.href = `ingestion.html?${qp.toString()}`;
+        }
+
+        // Initial state
+        updateSubmitButtonState();
+
+        // Show expectations popup
+        const expectationsPopup = document.getElementById('expectationsPopup');
+        expectationsPopup.style.display = 'block';
+
+        // Handle close button
+        const closeButton = document.getElementById('closeExpectations');
+        closeButton.addEventListener('click', function() {
+            expectationsPopup.style.display = 'none';
+            showConfetti();
+            setTimeout(() => {
+                showPopupWarning("Woohoo! You're officially prepared for this AI adventure. May the odds be ever in your favor!", '#28B463');
+            }, 1000);
+        });
+    });
+
+
+    function showConfetti() {
+        const duration = 3 * 1000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+            confetti({
+                particleCount: 7,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#ee0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc']
+            });
+            confetti({
+                particleCount: 7,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#ee0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc']
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        }());
+    }
+
+
+
+    let activePopup = null;
+    function showPopupWarning(message, color='#A60000') {
+        if (activePopup) {
+            document.body.removeChild(activePopup);
+        }
+
+        const popup = document.createElement('div');
+        popup.classList.add('popup-warning');
+        popup.textContent = message;
+
+        const popupContainer = document.createElement('div');
+        popupContainer.classList.add('popup-container');
+        popupContainer.appendChild(popup);
+
+        document.body.appendChild(popupContainer);
+        activePopup = popupContainer;
+
+        const menuBarHeight = document.getElementById('menuBar').offsetHeight;
+
+        popup.style.display = 'flex';
+        popup.style.justifyContent = 'center';
+        popup.style.alignItems = 'center';
+        popup.style.backgroundColor = color;
+        popup.style.color = 'white';
+        popup.style.padding = '10px 20px';
+        popup.style.position = 'fixed';
+        popup.style.top = menuBarHeight + 'px';
+        popup.style.width = '100%';
+        popup.style.left = '0';
+        popup.style.zIndex = '1000';
+
+        setTimeout(() => {
+            if (activePopup === popupContainer) {
+                document.body.removeChild(popupContainer);
+                activePopup = null;
+            }
+        }, 5000);
+    }
+</script>
 </body>
 </html>
