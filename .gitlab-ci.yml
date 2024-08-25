@@ -1,0 +1,33 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  when: manual
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan 10.0.188.176 >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - |
+      ssh -i $SSH_PRIVATE_KEY cloud-user@10.0.188.176 << EOF
+        cd /home/cloud-user
+        ./dbscript.sh stop
+        rm -rf intelligence_stage
+        GIT_SSL_NO_VERIFY=true git clone https://oauth2:${GITLAB_PAT}@gitlab.cee.redhat.com/dxp-DocsBot/intelligence.git -b $CI_DEPLOY_REF intelligence_stage
+        cd intelligence_stage
+        python -m venv docsbotig
+        source docsbotig/bin/activate
+        pip install -r requirements.txt
+        pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
+        pip install "numpy<2"
+        cd ..
+        ./dbscript.sh status
+        ./dbscript.sh start
+      EOF
+  variables:
+    CI_DEPLOY_REF: $CI_COMMIT_REF_NAME
+    GIT_STRATEGY: none
