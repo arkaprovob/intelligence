@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import threading
 import time
 from typing import Optional
@@ -8,6 +9,7 @@ from redisvl.extensions.llmcache import SemanticCache
 from redisvl.utils.vectorize import HFTextVectorizer
 
 from util import get_config_value
+from util.utility import configure_logging
 
 
 class RedisCache:
@@ -28,6 +30,7 @@ class RedisCache:
 
     _instances = {}
     _lock = threading.Lock()
+    configure_logging()
 
     def __new__(cls, name: str = "common_cache", prefix: str = "docsbot", *args, **kwargs):
         key = (name, prefix)
@@ -49,7 +52,7 @@ class RedisCache:
             self.prefix = prefix
 
             if vectorizer is None:
-                vectorizer = HFTextVectorizer(model="BAAI/bge-large-en")
+                vectorizer = HFTextVectorizer(model="sentence-transformers/all-mpnet-base-v2")
 
             self._cache = SemanticCache(
                 name=name,  # underlying search index name
@@ -99,7 +102,8 @@ class RedisCache:
 
         async def stream_cached_response():
             # simulate streaming for cached response
-            words = cached_response.split()
+            words = re.split(r'(\s+)', cached_response)
+
             for word in words:
                 send_as = word + " "
                 yield f"data: {json.dumps({'text': send_as})}\n\n"

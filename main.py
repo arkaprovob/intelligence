@@ -13,7 +13,7 @@ from fastapi import FastAPI, Body, HTTPException, UploadFile, File, Form, Query 
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from huggingface_hub import notebook_login
-from llama_index.core import Settings
+from llama_index.core import Settings, Document
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
@@ -59,12 +59,19 @@ class Application(BaseModel):
     hidden: bool = False
 
 
-class IngestionRequest(BaseModel):
+class FileIngestionRequest(BaseModel):
     name: str
     source: str
     workspace: str
     metadata: Dict[str, Any]
     additionaldetails: Optional[Dict[str, Any]] = None
+
+
+class TextIngestionRequest(BaseModel):
+    docs: List[Document]
+    collection_name: str
+
+
 
 
 cert_file = get_config_value("SSL_CERT_PATH")
@@ -294,7 +301,7 @@ async def delete_application(name: str):
 
 
 @app.post("/ingestion", response_model=IngestionResponse)
-async def create_ingestion_record(ingestion_data: IngestionRequest):
+async def create_ingestion_record(ingestion_data: FileIngestionRequest):
     try:
         # Convert metadata and additionaldetails to JSON strings
         metadata_json = json.dumps(ingestion_data.metadata)
@@ -365,6 +372,30 @@ async def update_ingestion(id: int, ingestion_data: IngestionResponse):
             raise HTTPException(status_code=404, detail="Ingestion not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while updating the ingestion")
+
+
+@app.post("/ingestion/text")
+async def ingest_text(tig: TextIngestionRequest):
+    try:
+
+        documents = [Document(text=entry.text, metadata=entry.metadata) for entry in tig.docs]
+
+        # Perform ingestion
+        await ingestion_engine.ingest_documents(
+            documents=documents,
+            use_node_parser=True,
+            async_support=False,
+            show_progress=True,
+            bucket=DataStore(tig.collection_name)
+        )
+
+        return {"status": "success", "message": "Documents ingested successfully"}
+
+    except Exception as e:
+        logging.error("An error occurred while ingesting docs", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"something went wrong in the backend; please contact with the "
+                                                    f"app dev team with this {time.time()} for more details")
+
 
 
 if __name__ == "__main__":

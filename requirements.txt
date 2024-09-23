@@ -33,3 +33,7 @@ pytest-asyncio
 tenacity
 llama-index-vector-stores-milvus
 pymilvus==2.4.5
+FlagEmbedding
+peft
+psutil
+llama-index-llms-llamafile

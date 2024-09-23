@@ -6,8 +6,10 @@ import sys
 
 profile = os.getenv('PROFILE', 'local')
 
+
 config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.ini')
 
+logging.debug(f"Selected configuration profile: {profile}")
 
 def get_config_value(key):
     logging.debug(f"#### selected profile: {profile} ####")

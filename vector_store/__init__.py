@@ -1,7 +1,7 @@
 """
 vector_store: Customization of vectorstore
 """
-from .custom_sparse_vector import sparse_doc_vectors, sparse_query_vectors
+from .qdrant_custom_sparse_vector import sparse_doc_vectors, sparse_query_vectors
 from .qdrant import DataStore
 
 __version__ = "0.1.0"

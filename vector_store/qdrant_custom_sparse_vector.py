@@ -2,6 +2,8 @@ from typing import List, Tuple
 
 import torch
 from transformers import AutoTokenizer, AutoModelForMaskedLM
+import logging
+import psutil
 
 doc_tokenizer = AutoTokenizer.from_pretrained(
     "naver/efficient-splade-VI-BT-large-doc"
@@ -18,6 +20,15 @@ query_model = AutoModelForMaskedLM.from_pretrained(
 )
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def get_available_memory():
+    """Get the available memory in the system."""
+    ram = psutil.virtual_memory()
+    logging.info(f"Available RAM: {ram.available / 1024**3:.2f} GB")
+    logging.info(f"Total RAM: {ram.total / 1024**3:.2f} GB")
+    logging.info(f"Used RAM: {ram.used / 1024**3:.2f} GB")
+    logging.info(f"Percentage of RAM used: {ram.percent}%")
 
 
 def sparse_doc_vectors(
@@ -53,12 +64,15 @@ def sparse_doc_vectors(
         which is specifically designed for creating document representations
         in sparse retrieval systems.
     """
+
+    logging.info(f"processing text: \n {texts} \n length of the list is {len(texts)}\n")
+
     tokens = doc_tokenizer(
         texts, truncation=True, padding=True, return_tensors="pt"
     )
-
-    print(f"device selected {device}")
+    logging.info(f"device selected for document embedding {device}")
     tokens = tokens.to(device)
+
 
     output = doc_model(**tokens)
     logits, attention_mask = output.logits, tokens.attention_mask
@@ -73,6 +87,8 @@ def sparse_doc_vectors(
         indices.append(batch.nonzero(as_tuple=True)[0].tolist())
         vecs.append(batch[indices[-1]].tolist())
 
+    get_available_memory()
+    logging.info(f" End of the function sparse_doc_vectors \n")
     return indices, vecs
 
 
@@ -118,7 +134,7 @@ def sparse_query_vectors(
         texts, truncation=True, padding=True, return_tensors="pt"
     )
 
-    print(f"device selected {device}")
+    print(f"device selected for question embedding {device}")
     tokens = tokens.to(device)
 
     output = query_model(**tokens)

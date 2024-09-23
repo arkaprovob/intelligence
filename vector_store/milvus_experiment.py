@@ -20,7 +20,12 @@ documents = SimpleDirectoryReader(
 print("Document ID:", documents[0].doc_id)
 
 vector_store = MilvusVectorStore(
-    uri="http://localhost:19530", dim=384, overwrite=True
+    uri="http://localhost:19530",
+    dim=384,
+    overwrite=True,
+    enable_sparse=True,
+    hybrid_ranker="RRFRanker",
+    hybrid_ranker_params={"k": 60},
 )
 storage_context = StorageContext.from_defaults(vector_store=vector_store)
 embedding = FastEmbedEmbedding(model_name="BAAI/bge-small-en-v1.5",
@@ -59,8 +64,8 @@ print(f" no of nodes are {len(final_nodes)}")
 index = VectorStoreIndex(
     final_nodes, storage_context=storage_context, embed_model=embedding
 )
-query_engine = index.as_query_engine(llm = llm,streaming=True, similarity_top_k=2)
-streaming_response = query_engine.query("contribution")
+query_engine = index.as_query_engine(llm = llm,streaming=True, similarity_top_k=2,vector_store_query_mode="hybrid")
+streaming_response = query_engine.query("streamline")
 # for text in streaming_response.response_gen:
 #     print(text)
 streaming_response.print_response_stream()

@@ -1,10 +1,11 @@
 import logging
+from typing import Sequence
 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.extractors import TitleExtractor, QuestionsAnsweredExtractor, SummaryExtractor
 from llama_index.core.node_parser import SentenceWindowNodeParser, SentenceSplitter
-from llama_index.core.schema import MetadataMode
+from llama_index.core.schema import MetadataMode, Document
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 
 from llm import LLMPool
@@ -87,7 +88,7 @@ class Ingestion:
                     await self.llm_pool.release_instance(llm_instance)
                 return extractors
 
-    async def ingest_documents(self, bucket: DataStore, documents, use_node_parser: bool = True,
+    async def ingest_documents(self, bucket: DataStore, documents:Sequence[Document], use_node_parser: bool = True,
                                async_support: bool = False, show_progress: bool = True, transform: bool = False):
         if use_node_parser:
             logger.info("Using node parser")

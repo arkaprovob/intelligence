@@ -201,6 +201,33 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /ingestion/text:
+    post:
+      summary: Ingest text documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextIngestionRequest'
+      responses:
+        '200':
+          description: Documents ingested successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Documents ingested successfully"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
 components:
   schemas:
     Query:
@@ -274,6 +301,43 @@ components:
           type: string
         done:
           type: boolean
+
+    TextIngestionRequest:
+      type: object
+      properties:
+        docs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        collection_name:
+          type: string
+      required:
+        - docs
+        - collection_name
+
+    Document:
+      type: object
+      properties:
+        text:
+          type: string
+        metadata:
+          type: object
+          properties:
+            source:
+              type: string
+            tpoic:
+              type: string
+            kind:
+              type: string
+            type:
+              type: string
+            owner:
+              type: string
+            work_stream:
+              type: string
+      required:
+        - text
+        - metadata
 
   responses:
     BadRequest:
