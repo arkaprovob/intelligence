@@ -312,14 +312,14 @@ components:
         docs:
           type: array
           items:
-            $ref: '#/components/schemas/Document'
+            $ref: '#/components/schemas/SimpleDocument'
         collection_name:
           type: string
       required:
         - docs
         - collection_name
 
-    Document:
+    SimpleDocument:
       type: object
       properties:
         text:

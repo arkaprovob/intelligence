@@ -66,12 +66,13 @@ class FileIngestionRequest(BaseModel):
     metadata: Dict[str, Any]
     additionaldetails: Optional[Dict[str, Any]] = None
 
+class SimpleDocument(BaseModel):
+    text: str
+    metadata: Dict[str, Any]
 
 class TextIngestionRequest(BaseModel):
-    docs: List[Document]
+    docs: List[SimpleDocument]
     collection_name: str
-
-
 
 
 cert_file = get_config_value("SSL_CERT_PATH")
