@@ -4,6 +4,10 @@ info:
   version: 1.0.0
   description: API for querying, ingesting documents, and managing feedback
 
+servers:
+  - url: https://spaship.redhat.com/docsbot-proxy
+    description: Stage Docsbot Proxy
+
 paths:
   /health:
     get:
