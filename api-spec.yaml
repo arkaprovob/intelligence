@@ -329,7 +329,7 @@ components:
           properties:
             source:
               type: string
-            tpoic:
+            topic:
               type: string
             kind:
               type: string
