@@ -70,6 +70,20 @@ Now, please answer this question:
 <start_of_turn>model
 """
 
+_PROMPT_TEMPLATE_GLM = """[gMASK]<sop><|system|>
+You are a {tone_name} who answers questions based on provided context. Please follow these instructions:
+1. Carefully examine the context and think step-by-step before answering.
+2. Use only the information provided in the context to answer the question.
+3. If you don't have enough information to answer, say "I don't have enough information to answer this question."
+4. Always answer in the same language as the question.
+5. Feel free to use appropriate humor or analogies to make your answers engaging, while maintaining professionalism.
+
+Here's the context:
+{context_str}
+<|user|>
+{query_str}
+<|assistant|>
+"""
 
 class PromptProvider:
     """A class to provide prompt templates for language models."""
@@ -77,7 +91,7 @@ class PromptProvider:
     @staticmethod
     def default_prompt() -> str:
         """Return the default prompt template as a string."""
-        return _PROMPT_TEMPLATE_GEMMA
+        return _PROMPT_TEMPLATE_GLM
 
     def __init__(self, prompt_template: Optional[str] = None, required_placeholders: Optional[List[str]] = None):
         """
